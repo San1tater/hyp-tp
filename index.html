@@ -496,7 +496,6 @@
     // 班級排序函式：支援 P1A, P1B, P1C, P1D, P2A, P2B, P2C... 格式
     function sortClasses(classes) {
         return classes.sort((a, b) => {
-            // 嘗試解析 "P1A" 格式：正規表達式提取數字和字母
             const regex = /^P(\d+)([A-Za-z]?)$/i;
             const matchA = a.match(regex);
             const matchB = b.match(regex);
@@ -508,7 +507,6 @@
                 const letterB = matchB[2] || '';
                 return letterA.localeCompare(letterB);
             }
-            // 若格式不符，回歸一般字串排序
             return a.localeCompare(b, 'zh-Hant');
         });
     }
@@ -689,15 +687,30 @@
     }
     backToEntryBtn.onclick = backToEntry;
 
-    confirmVoteBtn.onclick = async () => {
+    // 修改確認投票邏輯：低於4位但大於0時可選擇直接提交或繼續選擇；為0時不允許提交
+    confirmVoteBtn.onclick = () => {
         if (!currentStudent) {
             showModal("學生資訊遺失，請返回重試", [{label:"返回", onClick:backToEntry}]);
             return;
         }
-        if (selectedTeachers.size !== 4) {
-            showModal(`您目前選擇了 ${selectedTeachers.size} 位教師，必須恰好選擇 4 位才能提交。`, [{label:"繼續選擇"}]);
+        const selectedCount = selectedTeachers.size;
+        if (selectedCount === 0) {
+            showModal("❌ 您尚未選擇任何教師，請至少選擇一位教師再提交。", [{label:"繼續選擇"}]);
             return;
         }
+        if (selectedCount === 4) {
+            // 剛好四位，直接提交
+            submitVote();
+        } else if (selectedCount > 0 && selectedCount < 4) {
+            // 1-3位，彈窗詢問
+            showModal(`您目前只選擇了 ${selectedCount} 位教師（未達4位），是否確定要直接提交？`, [
+                {label:"繼續選擇", onClick:()=>{}},
+                {label:"直接提交", onClick:()=> submitVote()}
+            ]);
+        }
+    };
+
+    async function submitVote() {
         const selectedList = Array.from(selectedTeachers);
         const voteRecord = {
             class: currentStudent.class,
@@ -720,7 +733,7 @@
             console.error(err);
             showModal("投票提交失敗，請檢查網路或資料庫權限", [{label:"重試"}]);
         }
-    };
+    }
 
     // 管理工具密碼
     function unlockTools(password) {
