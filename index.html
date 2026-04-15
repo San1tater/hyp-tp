@@ -4,10 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>表揚教師選舉系統 | 校園投票平台</title>
-    <!-- Firebase 8 SDK (Realtime Database) -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-    <!-- SheetJS 處理 Excel -->
+    <!-- SheetJS 處理 Excel (非模組，直接載入) -->
     <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
     <style>
         * {
@@ -368,25 +365,17 @@
                 </div>
             </div>
             <div style="margin-top: 24px; background:#eef2f5; border-radius: 20px; padding: 16px;">
-                <div class="tool-title" style="margin:0 0 8px 0;">🔥 Firebase Realtime Database 配置指引</div>
-                <p>請將下方 <code>firebaseConfig</code> 物件中的值替換為您 Firebase 專案的實際資料，並啟用 Realtime Database。</p>
+                <div class="tool-title" style="margin:0 0 8px 0;">🔥 Firebase Realtime Database 配置</div>
+                <p>目前使用您提供的 Firebase 專案，資料庫連線正常。</p>
                 <div class="firebase-config-code" id="firebaseConfigCodeBlock">
-// 在 &lt;script&gt; 區域取代原本的 firebaseConfig<br>
-const firebaseConfig = {<br>
-&nbsp;&nbsp;apiKey: "請輸入您的 API Key",<br>
-&nbsp;&nbsp;authDomain: "您的專案.firebaseapp.com",<br>
-&nbsp;&nbsp;databaseURL: "https://您的專案.firebaseio.com",<br>
-&nbsp;&nbsp;projectId: "您的專案ID",<br>
-&nbsp;&nbsp;storageBucket: "您的專案.appspot.com",<br>
-&nbsp;&nbsp;messagingSenderId: "寄件者ID",<br>
-&nbsp;&nbsp;appId: "應用程式ID"<br>
-};
+// 已套用您的 Firebase 設定<br>
+databaseURL: "https://hyp-tp-default-rtdb.firebaseio.com"<br>
+專案ID: hyp-tp
                 </div>
-                <p class="warning-text" style="margin-top: 8px;">⚠️ 提醒：Realtime Database 規則需允許讀寫 (測試階段可開放)。投票記錄儲存於路徑 <strong>/votes/{班級}_{學號}</strong> 中。</p>
             </div>
         </div>
     </div>
-    <footer>⚠️ 請先設定 Firebase 專案（上方管理工具內有配置代碼）並確保已啟用 Realtime Database。投票數據每人限投一次。</footer>
+    <footer>⚠️ 投票資料儲存於 Firebase Realtime Database，路徑 /votes/{班級}_{學號}。</footer>
 </div>
 
 <div id="customModal" class="modal-mask">
@@ -396,34 +385,34 @@ const firebaseConfig = {<br>
     </div>
 </div>
 
-<script>
-    // ----------------------------- Firebase 配置（請替換為您自己的專案設定）--------------------------------
+<script type="module">
+    // 匯入 Firebase SDK (v12.12.0 模組化)
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
+    import { getDatabase, ref, set, get, child, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-database.js";
+
+    // 您的 Firebase 配置
     const firebaseConfig = {
-        apiKey: "YOUR_API_KEY",
-        authDomain: "YOUR_PROJECT.firebaseapp.com",
-        databaseURL: "https://YOUR_PROJECT.firebaseio.com",  // 重要：需填入正確的資料庫 URL
-        projectId: "YOUR_PROJECT_ID",
-        storageBucket: "YOUR_PROJECT.appspot.com",
-        messagingSenderId: "YOUR_SENDER_ID",
-        appId: "YOUR_APP_ID"
+        apiKey: "AIzaSyDCvkvGdcM6mgtCFUhdhystavYIABq3dqE",
+        authDomain: "hyp-tp.firebaseapp.com",
+        databaseURL: "https://hyp-tp-default-rtdb.firebaseio.com",
+        projectId: "hyp-tp",
+        storageBucket: "hyp-tp.firebasestorage.app",
+        messagingSenderId: "338994245282",
+        appId: "1:338994245282:web:9f69f8433968ed995471fb",
+        measurementId: "G-M43LXWJN8T"
     };
-    let db; // Realtime Database reference
-    let firebaseInitialized = false;
-    try {
-        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-        db = firebase.database();
-        firebaseInitialized = true;
-        console.log("Firebase Realtime Database 初始化成功");
-    } catch(e) {
-        console.warn("Firebase 初始化失敗，請正確填寫配置", e);
-    }
+
+    // 初始化 Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    console.log("Firebase Realtime Database 已連線");
 
     // 全域資料
     let studentList = [];         // [{班別,學號,姓名}]
-    let teacherList = [];         // 新格式: [{編號, 名字, 縮寫}]
+    let teacherList = [];         // [{編號, 名字, 縮寫}]
     let currentStudent = null;
-    let selectedTeachers = new Set();   // 儲存教師的「縮寫」作為唯一識別
-    let currentTeacherMap = new Map();  // key: 縮寫, value: 教師完整物件
+    let selectedTeachers = new Set();   // 儲存教師「縮寫」作為唯一識別
+    let currentTeacherMap = new Map();
 
     // DOM 元素
     const classSelect = document.getElementById('classSelect');
@@ -447,6 +436,7 @@ const firebaseConfig = {<br>
     const unlockToolsBtn = document.getElementById('unlockToolsBtn');
     let isToolsUnlocked = false;
 
+    // 自訂模態框
     function showModal(message, buttons = []) {
         modalMessage.innerText = message;
         modalButtons.innerHTML = '';
@@ -506,8 +496,8 @@ const firebaseConfig = {<br>
             studentIdSelect.disabled = true;
             return;
         }
-        // 篩選該班級學生，並依學號數值排序（字串轉數字，相容純數字）
         let students = studentList.filter(s => s.班別 === className);
+        // 學號排序 (數值排序)
         students.sort((a, b) => {
             const numA = parseInt(a.學號, 10);
             const numB = parseInt(b.學號, 10);
@@ -528,7 +518,7 @@ const firebaseConfig = {<br>
     }
     classSelect.addEventListener('change', (e) => updateStudentIdByClass(e.target.value));
 
-    // 載入教師列表 (docs/teacherlist.json) - 新格式: 編號, 名字, 縮寫
+    // 載入教師列表 (docs/teacherlist.json) - 格式: 編號, 名字, 縮寫
     async function loadTeacherData() {
         try {
             const res = await fetch('docs/teacherlist.json');
@@ -540,7 +530,7 @@ const firebaseConfig = {<br>
                 縮寫: t.縮寫 || t.名字 || ""
             }));
         } catch (err) {
-            console.warn("讀取 teacherlist.json 失敗，使用示範教師 (新格式)", err);
+            console.warn("讀取 teacherlist.json 失敗，使用示範教師", err);
             teacherList = [
                 {編號:"T01", 名字:"張雅惠", 縮寫:"張老師"},
                 {編號:"T02", 名字:"李志明", 縮寫:"李老師"},
@@ -593,7 +583,7 @@ const firebaseConfig = {<br>
         if(selectedCounterSpan) selectedCounterSpan.innerText = `✅ 已選擇 ${selectedTeachers.size} / 4 位教師`;
     }
 
-    // 開始投票驗證 (修復跳轉問題)
+    // 開始投票驗證
     startVoteBtn.onclick = () => {
         const selectedClass = classSelect.value;
         const studentNo = studentIdSelect.value;
@@ -616,18 +606,15 @@ const firebaseConfig = {<br>
     async function enterVotingStage(student) {
         currentStudent = { class: student.班別, studentId: student.學號, name: student.姓名 };
         // 檢查 Realtime Database 是否已有投票記錄
-        if (firebaseInitialized && db) {
-            const voteRef = db.ref(`votes/${currentStudent.class}_${currentStudent.studentId}`);
-            const snapshot = await voteRef.once('value');
-            if (snapshot.exists()) {
-                showModal("⚠️ 您已經投過票了，不可重複投票。", [{label:"返回首頁", onClick:()=> backToEntry()}]);
-                return;
-            }
+        const voteRef = ref(db, `votes/${currentStudent.class}_${currentStudent.studentId}`);
+        const snapshot = await get(voteRef);
+        if (snapshot.exists()) {
+            showModal("⚠️ 您已經投過票了，不可重複投票。", [{label:"返回首頁", onClick:()=> backToEntry()}]);
+            return;
         }
         currentStudentInfo.innerText = `👤 目前投票人：${currentStudent.class} ${currentStudent.studentId}號 ${currentStudent.name}`;
         selectedTeachers.clear();
         renderTeacherGrid();
-        // 切換面板：隱藏入口面板，顯示投票面板
         entryPanel.style.display = 'none';
         votingPanel.style.display = 'block';
     }
@@ -650,27 +637,23 @@ const firebaseConfig = {<br>
             showModal(`您目前選擇了 ${selectedTeachers.size} 位教師，必須恰好選擇 4 位才能提交。`, [{label:"繼續選擇", onClick:()=>{}}]);
             return;
         }
-        if (!firebaseInitialized || !db) {
-            showModal("Firebase 未正確配置，無法儲存投票資料。請更新設定後重試。", [{label:"知道了"}]);
-            return;
-        }
         const selectedList = Array.from(selectedTeachers);
         const voteRecord = {
             class: currentStudent.class,
             studentId: currentStudent.studentId,
             studentName: currentStudent.name,
             selectedTeachers: selectedList,
-            voteTime: firebase.database.ServerValue.TIMESTAMP
+            voteTime: serverTimestamp()
         };
         const votePath = `votes/${currentStudent.class}_${currentStudent.studentId}`;
         try {
-            const voteRef = db.ref(votePath);
-            const snapshot = await voteRef.once('value');
+            const voteRef = ref(db, votePath);
+            const snapshot = await get(voteRef);
             if (snapshot.exists()) {
                 showModal("您已經投過票了！無法重複提交", [{label:"返回首頁", onClick:backToEntry}]);
                 return;
             }
-            await voteRef.set(voteRecord);
+            await set(voteRef, voteRecord);
             showModal("🎉 投票成功！感謝您的參與。", [{label:"返回首頁", onClick:()=> { backToEntry(); }}]);
         } catch (err) {
             console.error(err);
@@ -718,7 +701,7 @@ const firebaseConfig = {<br>
         });
     });
 
-    // -------------------- Excel 轉 JSON 工具 (教師格式 編號,名字,縮寫) --------------------
+    // -------------------- Excel 轉 JSON 工具 --------------------
     function excelToJson(file, headerMapping, fileNamePrefix) {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
@@ -778,19 +761,15 @@ const firebaseConfig = {<br>
 
     // 投票數據檢視工具 (從 Realtime Database 讀取)
     async function loadVoteStatistics() {
-        if (!firebaseInitialized || !db) {
-            document.getElementById('statsResultArea').innerHTML = '<p>⚠️ Firebase 未配置或未初始化，無法獲取投票數據。</p>';
-            return;
-        }
-        document.getElementById('statsResultArea').innerHTML = '<p>載入統計中...</p>';
+        const statsDiv = document.getElementById('statsResultArea');
+        if (!statsDiv) return;
+        statsDiv.innerHTML = '<p>載入統計中...</p>';
         try {
-            const snapshot = await db.ref('votes').once('value');
+            const votesRef = ref(db, 'votes');
+            const snapshot = await get(votesRef);
             const votesData = snapshot.val();
-            const votes = [];
-            if (votesData) {
-                Object.values(votesData).forEach(v => votes.push(v));
-            }
-            // 教師得票 Map (key: 縮寫)
+            const votes = votesData ? Object.values(votesData) : [];
+            // 教師得票 Map
             const teacherVotes = new Map();
             teacherList.forEach(t => {
                 const key = t.縮寫 || t.名字;
@@ -813,34 +792,38 @@ const firebaseConfig = {<br>
                 html += `<tr><td>${t.displayName}</td><td>${t.short}</td><td style="font-weight:bold;">${t.count}</td></tr>`;
             });
             html += '</tbody></table><div>總投票人數: ' + votes.length + '</div>';
-            document.getElementById('statsResultArea').innerHTML = html;
+            statsDiv.innerHTML = html;
         } catch(e) {
-            document.getElementById('statsResultArea').innerHTML = '<p>讀取失敗，請檢查 Realtime Database 權限</p>';
+            statsDiv.innerHTML = '<p>讀取失敗，請檢查 Realtime Database 權限</p>';
             console.error(e);
         }
     }
     document.getElementById('refreshStatsBtn') && (document.getElementById('refreshStatsBtn').onclick = loadVoteStatistics);
     document.getElementById('exportStatsExcelBtn') && (document.getElementById('exportStatsExcelBtn').onclick = async () => {
-        if (!firebaseInitialized || !db) { showModal("未連接 Firebase",[{label:"關閉"}]); return; }
-        const snapshot = await db.ref('votes').once('value');
-        const votesData = snapshot.val();
-        const votes = votesData ? Object.values(votesData) : [];
-        const teacherMapStat = new Map();
-        votes.forEach(v => {
-            (v.selectedTeachers || []).forEach(tch => {
-                teacherMapStat.set(tch, (teacherMapStat.get(tch) || 0) + 1);
+        try {
+            const votesRef = ref(db, 'votes');
+            const snapshot = await get(votesRef);
+            const votesData = snapshot.val();
+            const votes = votesData ? Object.values(votesData) : [];
+            const teacherMapStat = new Map();
+            votes.forEach(v => {
+                (v.selectedTeachers || []).forEach(tch => {
+                    teacherMapStat.set(tch, (teacherMapStat.get(tch) || 0) + 1);
+                });
             });
-        });
-        const exportData = Array.from(teacherMapStat.entries()).map(([teacherKey,票數]) => {
-            const teacherObj = teacherList.find(t => (t.縮寫 || t.名字) === teacherKey);
-            const teacherName = teacherObj ? teacherObj.名字 : teacherKey;
-            return { 教師姓名: teacherName, 縮寫: teacherKey, 得票數: 票數 };
-        });
-        const ws = XLSX.utils.json_to_sheet(exportData);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "教師得票統計");
-        XLSX.writeFile(wb, `教師票數統計_${new Date().toISOString().slice(0,19)}.xlsx`);
-        showModal("匯出成功", [{label:"關閉"}]);
+            const exportData = Array.from(teacherMapStat.entries()).map(([teacherKey,票數]) => {
+                const teacherObj = teacherList.find(t => (t.縮寫 || t.名字) === teacherKey);
+                const teacherName = teacherObj ? teacherObj.名字 : teacherKey;
+                return { 教師姓名: teacherName, 縮寫: teacherKey, 得票數: 票數 };
+            });
+            const ws = XLSX.utils.json_to_sheet(exportData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "教師得票統計");
+            XLSX.writeFile(wb, `教師票數統計_${new Date().toISOString().slice(0,19)}.xlsx`);
+            showModal("匯出成功", [{label:"關閉"}]);
+        } catch(e) {
+            showModal("匯出失敗", [{label:"關閉"}]);
+        }
     });
 
     // 初始化
@@ -848,7 +831,6 @@ const firebaseConfig = {<br>
         await loadStudentData();
         await loadTeacherData();
         syncToolsTabUI();
-        if(!firebaseInitialized) document.getElementById('statsResultArea') && (document.getElementById('statsResultArea').innerHTML = '<p>⚠️ Firebase 設定無效，請更新設定後重新整理。</p>');
     })();
 </script>
 </body>
