@@ -165,14 +165,12 @@
             box-shadow: 0 10px 18px rgba(244,185,66,0.2);
             transform: scale(0.98);
         }
-        /* 編號樣式：放大，不加前綴 */
         .teacher-number {
             font-size: 1.7rem;
             font-weight: 800;
             color: #1e6f5c;
             line-height: 1.2;
         }
-        /* 名字樣式：稍微縮小，且處理括號換行 */
         .teacher-name {
             font-size: 1.1rem;
             font-weight: 600;
@@ -495,6 +493,26 @@
         modal.classList.remove('active');
     }
 
+    // 班級排序函式：支援 P1A, P1B, P1C, P1D, P2A, P2B, P2C... 格式
+    function sortClasses(classes) {
+        return classes.sort((a, b) => {
+            // 嘗試解析 "P1A" 格式：正規表達式提取數字和字母
+            const regex = /^P(\d+)([A-Za-z]?)$/i;
+            const matchA = a.match(regex);
+            const matchB = b.match(regex);
+            if (matchA && matchB) {
+                const numA = parseInt(matchA[1], 10);
+                const numB = parseInt(matchB[1], 10);
+                if (numA !== numB) return numA - numB;
+                const letterA = matchA[2] || '';
+                const letterB = matchB[2] || '';
+                return letterA.localeCompare(letterB);
+            }
+            // 若格式不符，回歸一般字串排序
+            return a.localeCompare(b, 'zh-Hant');
+        });
+    }
+
     // 載入學生名單
     async function loadStudentData() {
         try {
@@ -506,18 +524,21 @@
         } catch (err) {
             console.warn("讀取 namelist.json 失敗，使用示範數據", err);
             studentList = [
-                {班別:"中一甲",學號:"101",姓名:"李小樂"},
-                {班別:"中一甲",學號:"102",姓名:"王美美"},
-                {班別:"中一甲",學號:"99",姓名:"張小美"},
-                {班別:"中二乙",學號:"201",姓名:"陳大文"},
-                {班別:"中二乙",學號:"205",姓名:"黃子軒"}
+                {班別:"P1C",學號:"103",姓名:"李小樂"},
+                {班別:"P1A",學號:"101",姓名:"王美美"},
+                {班別:"P1B",學號:"102",姓名:"張小美"},
+                {班別:"P1D",學號:"104",姓名:"陳大文"},
+                {班別:"P2A",學號:"201",姓名:"黃子軒"},
+                {班別:"P2B",學號:"202",姓名:"林宜靜"},
+                {班別:"P2C",學號:"203",姓名:"鄭明軒"}
             ];
             populateClassSelect();
             showModal("⚠️ 未找到 docs/namelist.json，已載入示範學生資料。", [{label:"知道了"}]);
         }
     }
     function populateClassSelect() {
-        const classes = [...new Set(studentList.map(s => s.班別))];
+        let classes = [...new Set(studentList.map(s => s.班別))];
+        classes = sortClasses(classes);
         classSelect.innerHTML = '<option value="">-- 選擇班別 --</option>';
         classes.forEach(cls => {
             const opt = document.createElement('option');
@@ -597,9 +618,7 @@
             const key = teacher.縮寫 || teacher.名字;
             const card = document.createElement('div');
             card.className = `teacher-card ${selectedTeachers.has(key) ? 'selected' : ''}`;
-            // 編號置於上方，放大，不顯示「編號」文字
             const numberHtml = `<div class="teacher-number">${teacher.編號 || ''}</div>`;
-            // 名字處理括號換行
             const displayName = formatTeacherName(teacher.名字);
             const nameHtml = `<div class="teacher-name" style="white-space: pre-line;">${displayName}</div>`;
             const badgeHtml = `<div class="vote-badge">${teacher.縮寫 || ''}</div>`;
@@ -869,7 +888,7 @@
         }
     });
 
-    // 投票記錄管理：列出所有投票，並可刪除
+    // 投票記錄管理
     async function loadVoteRecords() {
         const recordsDiv = document.getElementById('recordsResultArea');
         if (!recordsDiv) return;
@@ -893,7 +912,6 @@
                     voteTime: value.voteTime ? new Date(value.voteTime).toLocaleString() : '未知時間'
                 });
             }
-            // 依時間倒序
             records.sort((a,b) => (b.voteTime > a.voteTime ? 1 : -1));
             let html = '<table class="vote-records-table"><thead><tr><th>班級</th><th>學號</th><th>姓名</th><th>投票對象</th><th>投票時間</th><th>操作</th></tr></thead><tbody>';
             for (const rec of records) {
@@ -909,7 +927,6 @@
             }
             html += '</tbody></table>';
             recordsDiv.innerHTML = html;
-            // 綁定刪除按鈕事件
             document.querySelectorAll('.delete-record-btn').forEach(btn => {
                 btn.addEventListener('click', async (e) => {
                     const voteId = btn.dataset.id;
@@ -918,9 +935,9 @@
                         {label:"確認刪除", onClick: async () => {
                             try {
                                 await remove(ref(db, `votes/${voteId}`));
-                                showModal("刪除成功", [{label:"確定", onClick:()=> loadVoteRecords()}]);
+                                showModal("刪除成功", [{label:"確定", onClick:()=> { loadVoteRecords(); loadVoteStatistics(); }}]);
                                 loadVoteRecords();
-                                loadVoteStatistics(); // 同步更新統計
+                                loadVoteStatistics();
                             } catch(err) {
                                 showModal("刪除失敗", [{label:"關閉"}]);
                             }
