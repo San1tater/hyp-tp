@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>表揚教師選舉系統 | 校園投票平台</title>
-    <!-- SheetJS 處理 Excel (非模組，直接載入) -->
+    <!-- SheetJS 處理 Excel -->
     <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
     <style>
         * {
@@ -134,6 +134,12 @@
             background: #e9f5f0;
             transform: none;
         }
+        .btn-danger {
+            background: #c0392b;
+        }
+        .btn-danger:hover {
+            background: #a82315;
+        }
         .teacher-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
@@ -149,6 +155,9 @@
             border: 2px solid #e2edf2;
             cursor: pointer;
             transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
         }
         .teacher-card.selected {
             border: 3px solid #f4b942;
@@ -156,23 +165,31 @@
             box-shadow: 0 10px 18px rgba(244,185,66,0.2);
             transform: scale(0.98);
         }
-        .teacher-name-cn {
-            font-size: 1.3rem;
-            font-weight: 700;
+        /* 編號樣式：放大，不加前綴 */
+        .teacher-number {
+            font-size: 1.7rem;
+            font-weight: 800;
+            color: #1e6f5c;
+            line-height: 1.2;
+        }
+        /* 名字樣式：稍微縮小，且處理括號換行 */
+        .teacher-name {
+            font-size: 1.1rem;
+            font-weight: 600;
             color: #1e3b32;
+            white-space: pre-line;
         }
         .teacher-name-en {
             font-size: 0.8rem;
             color: #6c8b9b;
-            margin-top: 4px;
         }
         .vote-badge {
-            margin-top: 12px;
             font-size: 0.75rem;
             background: #eef3f7;
             display: inline-block;
             padding: 4px 12px;
             border-radius: 50px;
+            margin-top: 4px;
         }
         .selected-count {
             background: #f4b94220;
@@ -203,8 +220,8 @@
         }
         .modal-container {
             background: white;
-            max-width: 380px;
-            width: 85%;
+            max-width: 500px;
+            width: 90%;
             border-radius: 48px;
             padding: 28px 24px;
             text-align: center;
@@ -215,6 +232,7 @@
             gap: 16px;
             margin-top: 28px;
             justify-content: center;
+            flex-wrap: wrap;
         }
         .modal-buttons button {
             width: auto;
@@ -244,15 +262,22 @@
             margin-bottom: 16px;
             color: #1c5a4a;
         }
-        .vote-stats-table {
+        .vote-stats-table, .vote-records-table {
             width: 100%;
             border-collapse: collapse;
             margin: 16px 0;
+            font-size: 0.85rem;
         }
-        .vote-stats-table th, .vote-stats-table td {
-            padding: 12px 8px;
+        .vote-stats-table th, .vote-stats-table td,
+        .vote-records-table th, .vote-records-table td {
+            padding: 10px 6px;
             border-bottom: 1px solid #cfe2e8;
             text-align: left;
+        }
+        .vote-records-table button {
+            padding: 4px 12px;
+            font-size: 0.75rem;
+            width: auto;
         }
         hr {
             margin: 20px 0;
@@ -280,6 +305,17 @@
         button:disabled {
             opacity: 0.6;
             cursor: not-allowed;
+        }
+        .record-actions {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .scrollable-table {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #e0edf0;
+            border-radius: 20px;
         }
     </style>
 </head>
@@ -338,6 +374,7 @@
             </div>
         </div>
         <div id="toolUnlockedArea" class="tool-unlocked" style="display: none;">
+            <!-- Excel 轉 JSON 工具 -->
             <div class="tool-section" style="background: #f9fcfb; border-radius: 28px; padding: 20px; border: 1px solid #d9e9ef;">
                 <div class="tool-title">📎 1. Excel 轉 JSON 工具</div>
                 <div style="display: flex; flex-wrap: wrap; gap: 24px;">
@@ -349,28 +386,35 @@
                     </div>
                     <div style="flex:1; min-width: 220px;">
                         <h4>👩‍🏫 教師名單轉換</h4>
-                        <p class="warning-text">表頭: 編號, 名字, 縮寫 (順序不拘但欄位名稱需相符)</p>
+                        <p class="warning-text">表頭: 編號, 名字, 縮寫</p>
                         <input type="file" id="teacherExcelInput" accept=".xlsx, .xls, .csv" />
                         <button id="convertTeacherBtn" style="margin-top: 10px;">轉換並下載 JSON</button>
                     </div>
                 </div>
                 <hr />
-                <div class="tool-title" style="margin-top: 12px;">📊 2. 投票數據檢視 (即時統計)</div>
+                <div class="tool-title">📊 2. 投票統計 (票數排序)</div>
                 <div>
                     <button id="refreshStatsBtn" style="width: auto; background: #3f7e6b; margin-right: 12px;">🔄 重新整理票數統計</button>
                     <button id="exportStatsExcelBtn" style="width: auto; background: #2c6e9e;">📎 匯出 Excel 報表</button>
                 </div>
-                <div id="statsResultArea" style="margin-top: 20px; max-height: 450px; overflow-x: auto;">
+                <div id="statsResultArea" style="margin-top: 20px; max-height: 300px; overflow-x: auto;">
                     <p>點擊重新整理或等待載入...</p>
+                </div>
+                <hr />
+                <div class="tool-title">🗑️ 3. 投票記錄管理 (可刪除特定學生投票)</div>
+                <div>
+                    <button id="refreshRecordsBtn" style="width: auto; background: #3f7e6b;">🔄 重新整理投票記錄</button>
+                </div>
+                <div id="recordsResultArea" style="margin-top: 20px;" class="scrollable-table">
+                    <p>請點擊「重新整理投票記錄」以載入資料</p>
                 </div>
             </div>
             <div style="margin-top: 24px; background:#eef2f5; border-radius: 20px; padding: 16px;">
                 <div class="tool-title" style="margin:0 0 8px 0;">🔥 Firebase Realtime Database 配置</div>
                 <p>目前使用您提供的 Firebase 專案，資料庫連線正常。</p>
-                <div class="firebase-config-code" id="firebaseConfigCodeBlock">
-// 已套用您的 Firebase 設定<br>
-databaseURL: "https://hyp-tp-default-rtdb.firebaseio.com"<br>
-專案ID: hyp-tp
+                <div class="firebase-config-code">
+                    databaseURL: https://hyp-tp-default-rtdb.firebaseio.com<br>
+                    專案ID: hyp-tp
                 </div>
             </div>
         </div>
@@ -386,11 +430,9 @@ databaseURL: "https://hyp-tp-default-rtdb.firebaseio.com"<br>
 </div>
 
 <script type="module">
-    // 匯入 Firebase SDK (v12.12.0 模組化)
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
-    import { getDatabase, ref, set, get, child, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-database.js";
+    import { getDatabase, ref, set, get, remove, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-database.js";
 
-    // 您的 Firebase 配置
     const firebaseConfig = {
         apiKey: "AIzaSyDCvkvGdcM6mgtCFUhdhystavYIABq3dqE",
         authDomain: "hyp-tp.firebaseapp.com",
@@ -402,17 +444,15 @@ databaseURL: "https://hyp-tp-default-rtdb.firebaseio.com"<br>
         measurementId: "G-M43LXWJN8T"
     };
 
-    // 初始化 Firebase
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
     console.log("Firebase Realtime Database 已連線");
 
     // 全域資料
-    let studentList = [];         // [{班別,學號,姓名}]
-    let teacherList = [];         // [{編號, 名字, 縮寫}]
+    let studentList = [];
+    let teacherList = [];
     let currentStudent = null;
-    let selectedTeachers = new Set();   // 儲存教師「縮寫」作為唯一識別
-    let currentTeacherMap = new Map();
+    let selectedTeachers = new Set();
 
     // DOM 元素
     const classSelect = document.getElementById('classSelect');
@@ -429,14 +469,13 @@ databaseURL: "https://hyp-tp-default-rtdb.firebaseio.com"<br>
     const modalMessage = document.getElementById('modalMessage');
     const modalButtons = document.getElementById('modalButtons');
     
-    // 管理工具密碼相關
+    // 管理工具
     const toolLockedArea = document.getElementById('toolLockedArea');
     const toolUnlockedArea = document.getElementById('toolUnlockedArea');
     const adminPasswordInput = document.getElementById('adminPasswordInput');
     const unlockToolsBtn = document.getElementById('unlockToolsBtn');
     let isToolsUnlocked = false;
 
-    // 自訂模態框
     function showModal(message, buttons = []) {
         modalMessage.innerText = message;
         modalButtons.innerHTML = '';
@@ -456,7 +495,7 @@ databaseURL: "https://hyp-tp-default-rtdb.firebaseio.com"<br>
         modal.classList.remove('active');
     }
 
-    // 載入學生名單 (docs/namelist.json)
+    // 載入學生名單
     async function loadStudentData() {
         try {
             const res = await fetch('docs/namelist.json');
@@ -474,7 +513,7 @@ databaseURL: "https://hyp-tp-default-rtdb.firebaseio.com"<br>
                 {班別:"中二乙",學號:"205",姓名:"黃子軒"}
             ];
             populateClassSelect();
-            showModal("⚠️ 未找到 docs/namelist.json，已載入示範學生資料。請將正確檔案置於 docs 目錄。", [{label:"知道了", onClick:()=>{}}]);
+            showModal("⚠️ 未找到 docs/namelist.json，已載入示範學生資料。", [{label:"知道了"}]);
         }
     }
     function populateClassSelect() {
@@ -497,7 +536,6 @@ databaseURL: "https://hyp-tp-default-rtdb.firebaseio.com"<br>
             return;
         }
         let students = studentList.filter(s => s.班別 === className);
-        // 學號排序 (數值排序)
         students.sort((a, b) => {
             const numA = parseInt(a.學號, 10);
             const numB = parseInt(b.學號, 10);
@@ -518,7 +556,7 @@ databaseURL: "https://hyp-tp-default-rtdb.firebaseio.com"<br>
     }
     classSelect.addEventListener('change', (e) => updateStudentIdByClass(e.target.value));
 
-    // 載入教師列表 (docs/teacherlist.json) - 格式: 編號, 名字, 縮寫
+    // 載入教師列表
     async function loadTeacherData() {
         try {
             const res = await fetch('docs/teacherlist.json');
@@ -533,18 +571,23 @@ databaseURL: "https://hyp-tp-default-rtdb.firebaseio.com"<br>
             console.warn("讀取 teacherlist.json 失敗，使用示範教師", err);
             teacherList = [
                 {編號:"T01", 名字:"張雅惠", 縮寫:"張老師"},
-                {編號:"T02", 名字:"李志明", 縮寫:"李老師"},
+                {編號:"T02", 名字:"李志明(科主任)", 縮寫:"李老師"},
                 {編號:"T03", 名字:"王雅欣", 縮寫:"王老師"},
                 {編號:"T04", 名字:"陳建宏", 縮寫:"陳老師"},
-                {編號:"T05", 名字:"林怡君", 縮寫:"林老師"}
+                {編號:"T05", 名字:"林怡君(輔導)", 縮寫:"林老師"}
             ];
         }
-        currentTeacherMap.clear();
-        teacherList.forEach(t => { 
-            const key = t.縮寫 || t.名字;
-            currentTeacherMap.set(key, t); 
-        });
         renderTeacherGrid();
+    }
+
+    // 處理名字中括號換行：將括號及內容換行顯示
+    function formatTeacherName(name) {
+        if (!name) return '';
+        const match = name.match(/^([^\(（]+)[\(（](.+)[\)）]$/);
+        if (match) {
+            return `${match[1]}\n(${match[2]})`;
+        }
+        return name;
     }
 
     function renderTeacherGrid() {
@@ -554,11 +597,13 @@ databaseURL: "https://hyp-tp-default-rtdb.firebaseio.com"<br>
             const key = teacher.縮寫 || teacher.名字;
             const card = document.createElement('div');
             card.className = `teacher-card ${selectedTeachers.has(key) ? 'selected' : ''}`;
-            card.innerHTML = `
-                <div class="teacher-name-cn">${teacher.名字}</div>
-                <div class="teacher-name-en">${teacher.編號 ? '編號 ' + teacher.編號 : ''}</div>
-                <div class="vote-badge">${teacher.縮寫 || ''}</div>
-            `;
+            // 編號置於上方，放大，不顯示「編號」文字
+            const numberHtml = `<div class="teacher-number">${teacher.編號 || ''}</div>`;
+            // 名字處理括號換行
+            const displayName = formatTeacherName(teacher.名字);
+            const nameHtml = `<div class="teacher-name" style="white-space: pre-line;">${displayName}</div>`;
+            const badgeHtml = `<div class="vote-badge">${teacher.縮寫 || ''}</div>`;
+            card.innerHTML = numberHtml + nameHtml + badgeHtml;
             card.onclick = (e) => {
                 e.stopPropagation();
                 toggleTeacher(key);
@@ -572,7 +617,7 @@ databaseURL: "https://hyp-tp-default-rtdb.firebaseio.com"<br>
             selectedTeachers.delete(teacherKey);
         } else {
             if (selectedTeachers.size >= 4) {
-                showModal("❌ 最多只能選擇四位教師，請取消後再選。", [{label:"知道了", onClick:()=>{}}]);
+                showModal("❌ 最多只能選擇四位教師，請取消後再選。", [{label:"知道了"}]);
                 return;
             }
             selectedTeachers.add(teacherKey);
@@ -583,17 +628,16 @@ databaseURL: "https://hyp-tp-default-rtdb.firebaseio.com"<br>
         if(selectedCounterSpan) selectedCounterSpan.innerText = `✅ 已選擇 ${selectedTeachers.size} / 4 位教師`;
     }
 
-    // 開始投票驗證
     startVoteBtn.onclick = () => {
         const selectedClass = classSelect.value;
         const studentNo = studentIdSelect.value;
         if (!selectedClass || !studentNo) {
-            showModal("請完整選擇班別和學號", [{label:"返回", onClick:()=>{}}]);
+            showModal("請完整選擇班別和學號", [{label:"返回"}]);
             return;
         }
         const student = studentList.find(s => s.班別 === selectedClass && String(s.學號) === String(studentNo));
         if (!student) {
-            showModal("❌ 沒有登記！您不在學生名單中，請聯繫老師。", [{label:"返回", onClick:()=>{}}]);
+            showModal("❌ 沒有登記！您不在學生名單中，請聯繫老師。", [{label:"返回"}]);
             return;
         }
         const studentName = student.姓名;
@@ -605,7 +649,6 @@ databaseURL: "https://hyp-tp-default-rtdb.firebaseio.com"<br>
     
     async function enterVotingStage(student) {
         currentStudent = { class: student.班別, studentId: student.學號, name: student.姓名 };
-        // 檢查 Realtime Database 是否已有投票記錄
         const voteRef = ref(db, `votes/${currentStudent.class}_${currentStudent.studentId}`);
         const snapshot = await get(voteRef);
         if (snapshot.exists()) {
@@ -627,14 +670,13 @@ databaseURL: "https://hyp-tp-default-rtdb.firebaseio.com"<br>
     }
     backToEntryBtn.onclick = backToEntry;
 
-    // 確認投票上傳 Realtime Database
     confirmVoteBtn.onclick = async () => {
         if (!currentStudent) {
             showModal("學生資訊遺失，請返回重試", [{label:"返回", onClick:backToEntry}]);
             return;
         }
         if (selectedTeachers.size !== 4) {
-            showModal(`您目前選擇了 ${selectedTeachers.size} 位教師，必須恰好選擇 4 位才能提交。`, [{label:"繼續選擇", onClick:()=>{}}]);
+            showModal(`您目前選擇了 ${selectedTeachers.size} 位教師，必須恰好選擇 4 位才能提交。`, [{label:"繼續選擇"}]);
             return;
         }
         const selectedList = Array.from(selectedTeachers);
@@ -661,13 +703,14 @@ databaseURL: "https://hyp-tp-default-rtdb.firebaseio.com"<br>
         }
     };
 
-    // -------------------- 管理工具密碼保護 --------------------
+    // 管理工具密碼
     function unlockTools(password) {
         if (password === "Hyp26dhl!") {
             isToolsUnlocked = true;
             toolLockedArea.style.display = "none";
             toolUnlockedArea.style.display = "block";
             loadVoteStatistics();
+            loadVoteRecords();
             return true;
         } else {
             showModal("密碼錯誤，無法進入管理工具。", [{label:"確定", onClick:()=>{ adminPasswordInput.value = ""; }}]);
@@ -686,6 +729,7 @@ databaseURL: "https://hyp-tp-default-rtdb.firebaseio.com"<br>
             toolLockedArea.style.display = "none";
             toolUnlockedArea.style.display = "block";
             loadVoteStatistics();
+            loadVoteRecords();
         }
     }
     document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -701,7 +745,7 @@ databaseURL: "https://hyp-tp-default-rtdb.firebaseio.com"<br>
         });
     });
 
-    // -------------------- Excel 轉 JSON 工具 --------------------
+    // Excel 轉 JSON
     function excelToJson(file, headerMapping, fileNamePrefix) {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
@@ -755,11 +799,11 @@ databaseURL: "https://hyp-tp-default-rtdb.firebaseio.com"<br>
         const fileInput = document.getElementById('teacherExcelInput');
         if (!fileInput.files.length) { showModal("請上傳教師名單 Excel (欄位: 編號,名字,縮寫)", [{label:"確定"}]); return; }
         excelToJson(fileInput.files[0], ["編號","名字","縮寫"], "teacherlist").then(cnt => {
-            showModal(`✅ 轉換成功！共 ${cnt} 位教師，已下載 teacherlist.json (新格式)`, [{label:"OK"}]);
+            showModal(`✅ 轉換成功！共 ${cnt} 位教師，已下載 teacherlist.json`, [{label:"OK"}]);
         }).catch(e => showModal("轉換失敗，請確保表頭包含：編號,名字,縮寫", [{label:"關閉"}]));
     });
 
-    // 投票數據檢視工具 (從 Realtime Database 讀取)
+    // 投票統計
     async function loadVoteStatistics() {
         const statsDiv = document.getElementById('statsResultArea');
         if (!statsDiv) return;
@@ -769,7 +813,6 @@ databaseURL: "https://hyp-tp-default-rtdb.firebaseio.com"<br>
             const snapshot = await get(votesRef);
             const votesData = snapshot.val();
             const votes = votesData ? Object.values(votesData) : [];
-            // 教師得票 Map
             const teacherVotes = new Map();
             teacherList.forEach(t => {
                 const key = t.縮寫 || t.名字;
@@ -825,6 +868,72 @@ databaseURL: "https://hyp-tp-default-rtdb.firebaseio.com"<br>
             showModal("匯出失敗", [{label:"關閉"}]);
         }
     });
+
+    // 投票記錄管理：列出所有投票，並可刪除
+    async function loadVoteRecords() {
+        const recordsDiv = document.getElementById('recordsResultArea');
+        if (!recordsDiv) return;
+        recordsDiv.innerHTML = '<p>載入投票記錄中...</p>';
+        try {
+            const votesRef = ref(db, 'votes');
+            const snapshot = await get(votesRef);
+            const votesData = snapshot.val();
+            if (!votesData) {
+                recordsDiv.innerHTML = '<p>尚無任何投票記錄。</p>';
+                return;
+            }
+            let records = [];
+            for (const [key, value] of Object.entries(votesData)) {
+                records.push({
+                    id: key,
+                    class: value.class || '',
+                    studentId: value.studentId || '',
+                    studentName: value.studentName || '',
+                    selectedTeachers: value.selectedTeachers || [],
+                    voteTime: value.voteTime ? new Date(value.voteTime).toLocaleString() : '未知時間'
+                });
+            }
+            // 依時間倒序
+            records.sort((a,b) => (b.voteTime > a.voteTime ? 1 : -1));
+            let html = '<table class="vote-records-table"><thead><tr><th>班級</th><th>學號</th><th>姓名</th><th>投票對象</th><th>投票時間</th><th>操作</th></tr></thead><tbody>';
+            for (const rec of records) {
+                const teachersStr = rec.selectedTeachers.join('、');
+                html += `<tr>
+                    <td>${rec.class}</td>
+                    <td>${rec.studentId}</td>
+                    <td>${rec.studentName}</td>
+                    <td style="max-width:200px; word-break:break-all;">${teachersStr}</td>
+                    <td>${rec.voteTime}</td>
+                    <td><button class="delete-record-btn" data-id="${rec.id}" style="background:#c0392b; padding:4px 10px;">刪除</button></td>
+                </tr>`;
+            }
+            html += '</tbody></table>';
+            recordsDiv.innerHTML = html;
+            // 綁定刪除按鈕事件
+            document.querySelectorAll('.delete-record-btn').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const voteId = btn.dataset.id;
+                    showModal(`確定要刪除 ${voteId} 的投票記錄嗎？此操作無法復原。`, [
+                        {label:"取消", onClick:()=>{}},
+                        {label:"確認刪除", onClick: async () => {
+                            try {
+                                await remove(ref(db, `votes/${voteId}`));
+                                showModal("刪除成功", [{label:"確定", onClick:()=> loadVoteRecords()}]);
+                                loadVoteRecords();
+                                loadVoteStatistics(); // 同步更新統計
+                            } catch(err) {
+                                showModal("刪除失敗", [{label:"關閉"}]);
+                            }
+                        }}
+                    ]);
+                });
+            });
+        } catch(e) {
+            recordsDiv.innerHTML = '<p>讀取記錄失敗，請檢查權限</p>';
+            console.error(e);
+        }
+    }
+    document.getElementById('refreshRecordsBtn') && (document.getElementById('refreshRecordsBtn').onclick = loadVoteRecords);
 
     // 初始化
     (async function init() {
