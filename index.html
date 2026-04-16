@@ -315,6 +315,7 @@
             border: 1px solid #e0edf0;
             border-radius: 20px;
         }
+        /* 篩選列樣式：重新整理按鈕在最左，其他篩選項寬度縮短 */
         .filter-bar {
             display: flex;
             flex-wrap: wrap;
@@ -325,11 +326,17 @@
             padding: 16px;
             border-radius: 28px;
         }
-        .filter-bar .input-group {
-            margin-bottom: 0;
-            min-width: 140px;
+        .filter-bar .btn-refresh {
+            width: auto;
+            background: #3f7e6b;
+            margin-right: 8px;
         }
-        .filter-bar button {
+        .filter-bar .input-group {
+            flex: 0 1 180px;  /* 縮短寬度 */
+            min-width: 130px;
+            margin-bottom: 0;
+        }
+        .filter-bar button:not(.btn-refresh) {
             width: auto;
             padding: 12px 20px;
         }
@@ -418,25 +425,23 @@
                 </div>
                 <hr />
                 <div class="tool-title">🗑️ 3. 投票記錄管理 (可刪除特定學生投票)</div>
-                <!-- 篩選列 -->
+                <!-- 篩選列：重新整理按鈕在最左邊，班別與學號選擇框縮短 -->
                 <div class="filter-bar">
-                    <div class="input-group" style="flex:1;">
+                    <button id="refreshRecordsBtn" class="btn-refresh" style="background: #3f7e6b;">🔄 重新整理投票記錄</button>
+                    <div class="input-group">
                         <label>📚 篩選班別</label>
                         <select id="filterClassSelect">
                             <option value="">全部班別</option>
                         </select>
                     </div>
-                    <div class="input-group" style="flex:1;">
+                    <div class="input-group">
                         <label>🔢 篩選學號</label>
                         <select id="filterStudentIdSelect" disabled>
                             <option value="">請先選擇班別</option>
                         </select>
                     </div>
-                    <button id="applyFilterBtn" style="width: auto;">🔍 篩選</button>
-                    <button id="resetFilterBtn" style="width: auto; background: #6c8b9b;">🔄 重置</button>
-                </div>
-                <div>
-                    <button id="refreshRecordsBtn" style="width: auto; background: #3f7e6b;">🔄 重新整理投票記錄</button>
+                    <button id="applyFilterBtn">🔍 篩選</button>
+                    <button id="resetFilterBtn" style="background: #6c8b9b;">🔄 重置</button>
                 </div>
                 <div id="recordsResultArea" style="margin-top: 20px;" class="scrollable-table">
                     <p>請點擊「重新整理投票記錄」以載入資料</p>
@@ -452,7 +457,7 @@
             </div>
         </div>
     </div>
-    <footer>⚠️ 投票資料儲存於 Firebase Realtime Database，路徑 /votes/{班級}_{學號}。</footer>
+    <footer>⚠️ 請先設定 Firebase 專案（上方管理工具內有配置代碼）並確保已啟用 Realtime Database。</footer>
 </div>
 
 <div id="customModal" class="modal-mask">
@@ -777,7 +782,6 @@
     }
     backToEntryBtn.onclick = backToEntry;
 
-    // 修改確認投票邏輯：低於4位但大於0時可選擇直接提交或繼續選擇；為0時不允許提交
     confirmVoteBtn.onclick = () => {
         if (!currentStudent) {
             showModal("學生資訊遺失，請返回重試", [{label:"返回", onClick:backToEntry}]);
@@ -1014,7 +1018,6 @@
                     voteTime: value.voteTime ? new Date(value.voteTime).toLocaleString() : '未知時間'
                 });
             }
-            // 依時間倒序
             records.sort((a,b) => (b.voteTime > a.voteTime ? 1 : -1));
             allVoteRecords = records;
             // 重置篩選條件
@@ -1030,7 +1033,6 @@
         }
     }
 
-    // 根據 currentFilterClass 和 currentFilterStudentId 篩選並渲染
     function renderFilteredRecords() {
         const recordsDiv = document.getElementById('recordsResultArea');
         let filtered = [...allVoteRecords];
@@ -1058,7 +1060,6 @@
         }
         html += '</tbody></table>';
         recordsDiv.innerHTML = html;
-        // 綁定刪除按鈕事件
         document.querySelectorAll('.delete-record-btn').forEach(btn => {
             btn.addEventListener('click', async (e) => {
                 const voteId = btn.dataset.id;
@@ -1079,7 +1080,6 @@
         });
     }
 
-    // 篩選按鈕
     applyFilterBtn.addEventListener('click', () => {
         currentFilterClass = filterClassSelect.value;
         if (currentFilterClass && filterStudentIdSelect.value) {
@@ -1089,7 +1089,6 @@
         }
         renderFilteredRecords();
     });
-    // 重置篩選
     resetFilterBtn.addEventListener('click', () => {
         currentFilterClass = "";
         currentFilterStudentId = "";
