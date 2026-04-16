@@ -340,7 +340,22 @@
 <body>
 <div class="container">
     <h1>🏆 表揚教師選舉</h1>
-    <div class="sub">選出四位最值得表揚的老師 · 每人限投一次</div>
+    <div class="sub">
+選出四位最值得表揚的老師 · 每人限投一次
+Select the four most commendable teachers · Each person may vote only once
+        
+推選標準 Election Criteria
+◆ 熱心教學:具有效教學方法與課堂管理;善於課程策劃、組織與發展。
+Enthusiasm about teaching: Nominees have effective pedagogy and classroom
+management skills, are good at curriculum planning and curriculum development.
+◆ 關心和愛護學生:給予適當輔導;啟發學習潛能;以身作則,可作學生典範。
+Love and care for students: Nominees guide students appropriately to develop their
+potentials, and act as role models for students.
+◆ 與家長和社區關係良好:積極參與教育相關組織的工作。
+Good relationship with parents and the community: Nominees participate proactively in
+matters and organizations related to education.
+◆ 其他優異之處。
+Other merits.</div>
 
     <div class="tabs">
         <button class="tab-btn active" data-tab="voteTab">📋 投票選舉</button>
@@ -354,18 +369,19 @@
             <p style="margin-bottom: 12px;">請選擇班級與學號，核實身份後即可開始投票（最多選擇4位教師）</p>
             <div class="flex-row">
                 <div class="input-group">
-                    <label>📚 班別</label>
+                    <label>📚 班別 Class</label>
                     <select id="classSelect"><option value="">-- 載入中 --</option></select>
                 </div>
                 <div class="input-group">
-                    <label>🔢 學號</label>
-                    <select id="studentIdSelect"><option value="">請先選擇班級</option></select>
+                    <label>🔢 學號 Class No.</label>
+                    <select id="studentIdSelect"><option value="">請先選擇班級 Please choose class first</option></select>
                 </div>
                 <div class="input-group">
-                    <button id="startVoteBtn">開始投票 ➡️</button>
+                    <button id="startVoteBtn">開始投票 Start vote ➡️</button>
                 </div>
             </div>
-            <div class="warning-text" style="margin-top: 12px;">📌 選舉說明：請認真選出四位您心目中值得表揚的老師，點擊教師卡片可選中/取消，確認後提交，每人僅限投票一次。</div>
+            <div class="warning-text" style="margin-top: 12px;">📌 選舉說明：請認真選出四位您心目中值得表揚的老師，點擊教師卡片可選中/取消，確認後提交，每人僅限投票一次。
+                Voting Instructions: Please carefully select four teachers you believe are most worthy of recognition. Click on a teacher's card to select/deselect them. Once confirmed, submit your vote. Each person may vote only once.</div>
         </div>
         <div id="votingPanel" style="display: none;">
             <div class="form-card">
@@ -374,8 +390,8 @@
                 <div id="teacherListContainer" class="teacher-grid">載入教師列表中...</div>
                 <div id="selectedCounter" class="selected-count">✅ 已選擇 0 / 4 位教師</div>
                 <div style="display: flex; gap: 16px; margin-top: 24px;">
-                    <button id="confirmVoteBtn" class="btn-outline" style="flex:1;">📨 確認投票</button>
-                    <button id="backToEntryBtn" style="background:#90a9b5; flex:1;">↩️ 返回重選</button>
+                    <button id="confirmVoteBtn" class="btn-outline" style="flex:1;">📨 確認投票 Confirm</button>
+                    <button id="backToEntryBtn" style="background:#90a9b5; flex:1;">↩️ 返回重選 Back</button>
                 </div>
             </div>
         </div>
