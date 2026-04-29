@@ -5,13 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>表揚教師選舉系統 | 校園投票平台</title>
     <!-- SheetJS 處理 Excel -->
-    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js">
+    </script>
     <style>
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
         }
+
         body {
             font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
             background: #f0f7ff;
@@ -19,6 +21,7 @@
             padding: 20px;
             min-height: 100vh;
         }
+
         .container {
             max-width: 1400px;
             margin: 0 auto;
@@ -28,10 +31,16 @@
             overflow: hidden;
             padding: 24px 28px;
         }
+
         @media (min-aspect-ratio: 1/1) {
-            body { padding: 24px 40px; }
-            .container { padding: 32px 40px; }
+            body {
+                padding: 24px 40px;
+            }
+            .container {
+                padding: 32px 40px;
+            }
         }
+
         h1 {
             font-size: 1.9rem;
             background: linear-gradient(135deg, #1e6f5c, #289672);
@@ -40,12 +49,14 @@
             color: transparent;
             margin-bottom: 8px;
         }
+
         .sub {
             color: #5e7a8c;
             border-left: 4px solid #289672;
             padding-left: 16px;
             margin-bottom: 28px;
         }
+
         .tabs {
             display: flex;
             gap: 12px;
@@ -53,6 +64,7 @@
             margin-bottom: 28px;
             flex-wrap: wrap;
         }
+
         .tab-btn {
             background: none;
             border: none;
@@ -64,47 +76,63 @@
             transition: 0.2s;
             color: #4b6a7c;
         }
+
         .tab-btn.active {
             background: #289672;
             color: white;
-            box-shadow: 0 4px 8px rgba(40,150,114,0.3);
+            box-shadow: 0 4px 8px rgba(40, 150, 114, 0.3);
         }
+
         .tab-pane {
             display: none;
             animation: fade 0.2s ease;
         }
+
         .tab-pane.active-pane {
             display: block;
         }
+
         @keyframes fade {
-            from { opacity: 0; transform: translateY(6px);}
-            to { opacity: 1; transform: translateY(0);}
+            from {
+                opacity: 0;
+                transform: translateY(6px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
+
         .form-card {
             background: #fefefe;
             border-radius: 28px;
             padding: 20px 24px;
-            box-shadow: 0 6px 14px rgba(0,0,0,0.03);
+            box-shadow: 0 6px 14px rgba(0, 0, 0, 0.03);
             border: 1px solid #e0edf0;
             margin-bottom: 24px;
         }
+
         .flex-row {
             display: flex;
             flex-wrap: wrap;
             gap: 20px;
             align-items: flex-end;
         }
+
         .input-group {
             flex: 1;
             min-width: 160px;
         }
+
         label {
             display: block;
             font-weight: 600;
             margin-bottom: 6px;
             color: #1f4e3f;
         }
-        select, button {
+
+        select,
+        button {
             width: 100%;
             padding: 12px 16px;
             border-radius: 60px;
@@ -113,45 +141,53 @@
             font-size: 0.95rem;
             transition: 0.2s;
         }
+
         button {
             background: #289672;
             color: white;
             font-weight: bold;
             border: none;
             cursor: pointer;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
         }
+
         button:hover {
             background: #1e7b5f;
             transform: scale(0.98);
         }
+
         .btn-outline {
             background: white;
             border: 2px solid #289672;
             color: #289672;
         }
+
         .btn-outline:hover {
             background: #e9f5f0;
             transform: none;
         }
+
         .btn-danger {
             background: #c0392b;
         }
+
         .btn-danger:hover {
             background: #a82315;
         }
+
         .teacher-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
             gap: 18px;
             margin: 24px 0;
         }
+
         .teacher-card {
             background: white;
             border-radius: 24px;
             padding: 18px 12px;
             text-align: center;
-            box-shadow: 0 6px 12px rgba(0,0,0,0.05);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.05);
             border: 2px solid #e2edf2;
             cursor: pointer;
             transition: all 0.2s;
@@ -159,28 +195,33 @@
             flex-direction: column;
             gap: 8px;
         }
+
         .teacher-card.selected {
             border: 3px solid #f4b942;
             background: #fffaf0;
-            box-shadow: 0 10px 18px rgba(244,185,66,0.2);
+            box-shadow: 0 10px 18px rgba(244, 185, 66, 0.2);
             transform: scale(0.98);
         }
+
         .teacher-number {
             font-size: 1.7rem;
             font-weight: 800;
             color: #1e6f5c;
             line-height: 1.2;
         }
+
         .teacher-name {
             font-size: 1.1rem;
             font-weight: 600;
             color: #1e3b32;
             white-space: pre-line;
         }
+
         .teacher-name-en {
             font-size: 0.8rem;
             color: #6c8b9b;
         }
+
         .vote-badge {
             font-size: 0.75rem;
             background: #eef3f7;
@@ -189,6 +230,7 @@
             border-radius: 50px;
             margin-top: 4px;
         }
+
         .selected-count {
             background: #f4b94220;
             padding: 12px;
@@ -196,13 +238,14 @@
             text-align: center;
             font-weight: bold;
         }
+
         .modal-mask {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.5);
+            background: rgba(0, 0, 0, 0.5);
             backdrop-filter: blur(3px);
             display: flex;
             align-items: center;
@@ -212,10 +255,12 @@
             opacity: 0;
             transition: 0.2s;
         }
+
         .modal-mask.active {
             visibility: visible;
             opacity: 1;
         }
+
         .modal-container {
             background: white;
             max-width: 500px;
@@ -223,8 +268,9 @@
             border-radius: 48px;
             padding: 28px 24px;
             text-align: center;
-            box-shadow: 0 30px 40px rgba(0,0,0,0.2);
+            box-shadow: 0 30px 40px rgba(0, 0, 0, 0.2);
         }
+
         .modal-buttons {
             display: flex;
             gap: 16px;
@@ -232,10 +278,12 @@
             justify-content: center;
             flex-wrap: wrap;
         }
+
         .modal-buttons button {
             width: auto;
             padding: 8px 24px;
         }
+
         input.password-input {
             width: 100%;
             padding: 12px;
@@ -243,42 +291,54 @@
             border-radius: 40px;
             border: 1px solid #ccc;
         }
-        .tool-locked, .tool-unlocked {
+
+        .tool-locked,
+        .tool-unlocked {
             background: #f9fcfb;
             border-radius: 28px;
             padding: 20px;
             margin-top: 24px;
             border: 1px solid #d9e9ef;
         }
+
         .lock-overlay {
             text-align: center;
             padding: 30px 20px;
         }
+
         .tool-title {
             font-size: 1.3rem;
             font-weight: bold;
             margin-bottom: 16px;
             color: #1c5a4a;
         }
-        .vote-stats-table, .vote-records-table {
+
+        .vote-stats-table,
+        .vote-records-table {
             width: 100%;
             border-collapse: collapse;
             margin: 16px 0;
             font-size: 0.85rem;
         }
-        .vote-stats-table th, .vote-stats-table td,
-        .vote-records-table th, .vote-records-table td {
+
+        .vote-stats-table th,
+        .vote-stats-table td,
+        .vote-records-table th,
+        .vote-records-table td {
             padding: 10px 6px;
             border-bottom: 1px solid #cfe2e8;
             text-align: left;
         }
+
         hr {
             margin: 20px 0;
         }
+
         .warning-text {
             color: #c26b2e;
             font-size: 0.85rem;
         }
+
         .firebase-config-code {
             background: #1e2a36;
             color: #d4f1f9;
@@ -289,22 +349,26 @@
             overflow-x: auto;
             margin-top: 16px;
         }
+
         footer {
             margin-top: 32px;
             text-align: center;
             font-size: 0.7rem;
             color: #8aaebd;
         }
+
         button:disabled {
             opacity: 0.6;
             cursor: not-allowed;
         }
+
         .scrollable-table {
             max-height: 400px;
             overflow-y: auto;
             border: 1px solid #e0edf0;
             border-radius: 20px;
         }
+
         .filter-bar {
             display: flex;
             flex-wrap: wrap;
@@ -315,818 +379,849 @@
             padding: 16px;
             border-radius: 28px;
         }
+
         .filter-bar .btn-refresh {
             width: auto;
             background: #3f7e6b;
             margin-right: 8px;
         }
+
         .filter-bar .input-group {
             flex: 0 1 180px;
             min-width: 130px;
             margin-bottom: 0;
         }
+
         .filter-bar button:not(.btn-refresh) {
             width: auto;
             padding: 12px 20px;
         }
+
         .btn-delete {
             background: #c0392b;
         }
+
         .btn-delete:hover {
             background: #a82315;
         }
     </style>
 </head>
 <body>
-<div class="container">
-    <h1>🏆 表揚教師選舉</h1>
-    <div class="sub">
-選出四位最值得表揚的老師 · 每人限投一次 Select the four most commendable teachers · Each person may vote only once<br>       
-推選標準 Election Criteria<br>
-◆ 熱心教學:具有效教學方法與課堂管理;善於課程策劃、組織與發展。<br>
-Enthusiasm about teaching: Nominees have effective pedagogy and classroom management skills, are good at curriculum planning and curriculum development.<br>
-◆ 關心和愛護學生:給予適當輔導;啟發學習潛能;以身作則,可作學生典範。<br>
-Love and care for students: Nominees guide students appropriately to develop their potentials, and act as role models for students.<br>
-◆ 與家長和社區關係良好:積極參與教育相關組織的工作。<br>
-Good relationship with parents and the community: Nominees participate proactively in matters and organizations related to education.<br>
-◆ 其他優異之處。<br>
-Other merits.</div>
-
-    <div class="tabs">
-        <button class="tab-btn active" data-tab="voteTab">📋 投票選舉</button>
-        <button class="tab-btn" data-tab="toolsTab">🛠️ 管理工具</button>
-    </div>
-
-    <!-- 投票主面板 -->
-    <div id="voteTab" class="tab-pane active-pane">
-        <div id="entryPanel" class="form-card">
-            <h3>✅ 學生身份驗證</h3>
-            <p style="margin-bottom: 12px;">請選擇班級與學號，核實身份後即可開始投票（最多選擇4位教師）<br>Please select your class and student ID. After your identity is verified, you may begin voting (you can select up to 4 teachers)</p>
-            <div class="flex-row">
-                <div class="input-group">
-                    <label>📚 班別 Class</label>
-                    <select id="classSelect"><option value="">-- 載入中 --</option></select>
-                </div>
-                <div class="input-group">
-                    <label>🔢 學號 Class No.</label>
-                    <select id="studentIdSelect"><option value="">請先選擇班級</option></select>
-                </div>
-                <div class="input-group">
-                    <button id="startVoteBtn">開始投票 Start vote ➡️</button>
-                </div>
-            </div>
-            <div class="warning-text" style="margin-top: 12px;">📌 選舉說明：請認真選出四位您心目中值得表揚的老師，點擊教師卡片可選中/取消，確認後提交，每人僅限投票一次。<br>
-                Voting Instructions: Please carefully select four teachers you believe are most worthy of recognition. Click on a teacher's card to select/deselect them. Once confirmed, submit your vote. Each person may vote only once.</div>
+    <div class="container">
+        <h1>🏆 表揚教師選舉</h1>
+        <div class="sub">
+            選出四位最值得表揚的老師 · 每人限投一次 Select the four most commendable teachers · Each person may vote only once<br>
+            推選標準 Election Criteria<br>
+            ◆ 熱心教學:具有效教學方法與課堂管理;善於課程策劃、組織與發展。<br>
+            Enthusiasm about teaching: Nominees have effective pedagogy and classroom management skills, are good at curriculum planning and curriculum development.<br>
+            ◆ 關心和愛護學生:給予適當輔導;啟發學習潛能;以身作則,可作學生典範。<br>
+            Love and care for students: Nominees guide students appropriately to develop their potentials, and act as role models for students.<br>
+            ◆ 與家長和社區關係良好:積極參與教育相關組織的工作。<br>
+            Good relationship with parents and the community: Nominees participate proactively in matters and organizations related to education.<br>
+            ◆ 其他優異之處。<br>
+            Other merits.
         </div>
-        <div id="votingPanel" style="display: none;">
-            <div class="form-card">
-                <h3>⭐ 請選擇四位表揚教師</h3>
-                <div id="currentStudentInfo" style="background:#eef3f0; padding:8px 16px; border-radius: 30px; margin-bottom: 16px;"></div>
-                <div id="teacherListContainer" class="teacher-grid">載入教師列表中...</div>
-                <div id="selectedCounter" class="selected-count">✅ 已選擇 0 / 4 位教師</div>
-                <div style="display: flex; gap: 16px; margin-top: 24px;">
-                    <button id="confirmVoteBtn" class="btn-outline" style="flex:1;">📨 確認投票 Confirm</button>
-                    <button id="backToEntryBtn" style="background:#90a9b5; flex:1;">↩️ 返回重選 Back</button>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <!-- 管理工具面板 -->
-    <div id="toolsTab" class="tab-pane">
-        <div id="toolLockedArea" class="tool-locked">
-            <div class="lock-overlay">
-                <div class="tool-title">🔒 管理工具已鎖定</div>
-                <p>請輸入密碼以存取資料轉換及投票統計工具</p>
-                <input type="password" id="adminPasswordInput" class="password-input" placeholder="請輸入管理密碼" autocomplete="off">
-                <button id="unlockToolsBtn">解鎖並進入</button>
-            </div>
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="voteTab">📋 投票選舉</button>
+            <button class="tab-btn" data-tab="toolsTab">🛠️ 管理工具</button>
         </div>
-        <div id="toolUnlockedArea" class="tool-unlocked" style="display: none;">
-            <!-- Excel 轉 JSON 工具 -->
-            <div class="tool-section" style="background: #f9fcfb; border-radius: 28px; padding: 20px; border: 1px solid #d9e9ef;">
-                <div class="tool-title">📎 1. Excel 轉 JSON 工具</div>
-                <div style="display: flex; flex-wrap: wrap; gap: 24px;">
-                    <div style="flex:1; min-width: 220px;">
-                        <h4>📄 學生名單轉換</h4>
-                        <p class="warning-text">表頭: 班別,學號,姓名</p>
-                        <input type="file" id="studentExcelInput" accept=".xlsx, .xls, .csv" />
-                        <button id="convertStudentBtn" style="margin-top: 10px;">轉換並下載 JSON</button>
-                    </div>
-                    <div style="flex:1; min-width: 220px;">
-                        <h4>👩‍🏫 教師名單轉換</h4>
-                        <p class="warning-text">表頭: 編號, 名字, 縮寫</p>
-                        <input type="file" id="teacherExcelInput" accept=".xlsx, .xls, .csv" />
-                        <button id="convertTeacherBtn" style="margin-top: 10px;">轉換並下載 JSON</button>
-                    </div>
-                </div>
-                <hr />
-                <div class="tool-title">📊 2. 投票統計 (票數排序)</div>
-                <div>
-                    <button id="refreshStatsBtn" style="width: auto; background: #3f7e6b; margin-right: 12px;">🔄 重新整理票數統計</button>
-                    <button id="exportStatsExcelBtn" style="width: auto; background: #2c6e9e;">📎 匯出 Excel 報表</button>
-                </div>
-                <div id="statsResultArea" style="margin-top: 20px; max-height: 300px; overflow-x: auto;">
-                    <p>點擊重新整理或等待載入...</p>
-                </div>
-                <hr />
-                <div class="tool-title">🗑️ 3. 投票記錄管理 (可刪除特定學生投票)</div>
-                <!-- 篩選列：重新整理按鈕在最左邊，班別與學號選擇框縮短 -->
-                <div class="filter-bar">
-                    <button id="refreshRecordsBtn" class="btn-refresh" style="background: #3f7e6b;">🔄 重新整理投票記錄</button>
+
+        <!-- 投票主面板 -->
+        <div id="voteTab" class="tab-pane active-pane">
+            <div id="entryPanel" class="form-card">
+                <h3>✅ 學生身份驗證</h3>
+                <p style="margin-bottom: 12px;">請選擇班級與學號，核實身份後即可開始投票（最多選擇4位教師）<br>Please select your class and student ID. After your identity is verified, you may begin voting (you can select up
+                    to 4 teachers)</p>
+                <div class="flex-row">
                     <div class="input-group">
-                        <label>📚 篩選班別</label>
-                        <select id="filterClassSelect">
-                            <option value="">全部班別</option>
-                        </select>
+                        <label>📚 班別 Class</label>
+                        <select id="classSelect"><option value="">-- 載入中 --</option></select>
                     </div>
                     <div class="input-group">
-                        <label>🔢 篩選學號</label>
-                        <select id="filterStudentIdSelect" disabled>
-                            <option value="">請先選擇班別</option>
-                        </select>
+                        <label>🔢 學號 Class No.</label>
+                        <select id="studentIdSelect"><option value="">請先選擇班級</option></select>
                     </div>
-                    <button id="applyFilterBtn">🔍 篩選</button>
-                    <button id="resetFilterBtn" style="background: #6c8b9b;">🔄 重置</button>
-                    <button id="deleteFilteredBtn" class="btn-delete">🗑️ 刪除所選</button>
+                    <div class="input-group">
+                        <button id="startVoteBtn">開始投票 Start vote ➡️</button>
+                    </div>
                 </div>
-                <div id="recordsResultArea" style="margin-top: 20px;" class="scrollable-table">
-                    <p>請點擊「重新整理投票記錄」以載入資料</p>
+                <div class="warning-text" style="margin-top: 12px;">📌 選舉說明：請認真選出四位您心目中值得表揚的老師，點擊教師卡片可選中/取消，確認後提交，每人僅限投票一次。<br>
+                    Voting Instructions: Please carefully select four teachers you believe are most worthy of recognition. Click on a teacher's card to select/deselect them. Once confirmed, submit your
+                    vote. Each person may vote only once.</div>
+            </div>
+            <div id="votingPanel" style="display: none;">
+                <div class="form-card">
+                    <h3>⭐ 請選擇四位表揚教師</h3>
+                    <div id="currentStudentInfo" style="background:#eef3f0; padding:8px 16px; border-radius: 30px; margin-bottom: 16px;"></div>
+                    <div id="teacherListContainer" class="teacher-grid">載入教師列表中...</div>
+                    <div id="selectedCounter" class="selected-count">✅ 已選擇 0 / 4 位教師</div>
+                    <div style="display: flex; gap: 16px; margin-top: 24px;">
+                        <button id="confirmVoteBtn" class="btn-outline" style="flex:1;">📨 確認投票 Confirm</button>
+                        <button id="backToEntryBtn" style="background:#90a9b5; flex:1;">↩️ 返回重選 Back</button>
+                    </div>
                 </div>
             </div>
-            <div style="margin-top: 24px; background:#eef2f5; border-radius: 20px; padding: 16px;">
-                <div class="tool-title" style="margin:0 0 8px 0;">🔥 Firebase Realtime Database 配置</div>
-                <p>目前使用您提供的 Firebase 專案，資料庫連線正常。</p>
-                <div class="firebase-config-code">
-                    databaseURL: https://hyp-tp-default-rtdb.firebaseio.com<br>
-                    專案ID: hyp-tp
+        </div>
+
+        <!-- 管理工具面板 -->
+        <div id="toolsTab" class="tab-pane">
+            <div id="toolLockedArea" class="tool-locked">
+                <div class="lock-overlay">
+                    <div class="tool-title">🔒 管理工具已鎖定</div>
+                    <p>請輸入密碼以存取資料轉換及投票統計工具</p>
+                    <input type="password" id="adminPasswordInput" class="password-input" placeholder="請輸入管理密碼" autocomplete="off">
+                    <button id="unlockToolsBtn">解鎖並進入</button>
+                </div>
+            </div>
+            <div id="toolUnlockedArea" class="tool-unlocked" style="display: none;">
+                <!-- Excel 轉 JSON 工具 -->
+                <div class="tool-section" style="background: #f9fcfb; border-radius: 28px; padding: 20px; border: 1px solid #d9e9ef;">
+                    <div class="tool-title">📎 1. Excel 轉 JSON 工具</div>
+                    <div style="display: flex; flex-wrap: wrap; gap: 24px;">
+                        <div style="flex:1; min-width: 220px;">
+                            <h4>📄 學生名單轉換</h4>
+                            <p class="warning-text">表頭: 班別,學號,姓名</p>
+                            <input type="file" id="studentExcelInput" accept=".xlsx, .xls, .csv" />
+                            <button id="convertStudentBtn" style="margin-top: 10px;">轉換並下載 JSON</button>
+                        </div>
+                        <div style="flex:1; min-width: 220px;">
+                            <h4>👩‍🏫 教師名單轉換</h4>
+                            <p class="warning-text">表頭: 編號, 名字, 縮寫</p>
+                            <input type="file" id="teacherExcelInput" accept=".xlsx, .xls, .csv" />
+                            <button id="convertTeacherBtn" style="margin-top: 10px;">轉換並下載 JSON</button>
+                        </div>
+                    </div>
+                    <hr />
+                    <div class="tool-title">📊 2. 投票統計 (票數排序)</div>
+                    <div>
+                        <button id="refreshStatsBtn" style="width: auto; background: #3f7e6b; margin-right: 12px;">🔄 重新整理票數統計</button>
+                        <button id="exportStatsExcelBtn" style="width: auto; background: #2c6e9e;">📎 匯出 Excel 報表</button>
+                    </div>
+                    <div id="statsResultArea" style="margin-top: 20px; max-height: 300px; overflow-x: auto;">
+                        <p>點擊重新整理或等待載入...</p>
+                    </div>
+                    <hr />
+                    <div class="tool-title">🗑️ 3. 投票記錄管理 (可刪除特定學生投票)</div>
+                    <!-- 篩選列：重新整理按鈕在最左邊，班別與學號選擇框縮短 -->
+                    <div class="filter-bar">
+                        <button id="refreshRecordsBtn" class="btn-refresh" style="background: #3f7e6b;">🔄 重新整理投票記錄</button>
+                        <div class="input-group">
+                            <label>📚 篩選班別</label>
+                            <select id="filterClassSelect">
+                                <option value="">全部班別</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label>🔢 篩選學號</label>
+                            <select id="filterStudentIdSelect" disabled>
+                                <option value="">請先選擇班別</option>
+                            </select>
+                        </div>
+                        <button id="applyFilterBtn">🔍 篩選</button>
+                        <button id="resetFilterBtn" style="background: #6c8b9b;">🔄 重置</button>
+                        <button id="deleteFilteredBtn" class="btn-delete">🗑️ 刪除所選</button>
+                    </div>
+                    <div id="recordsResultArea" style="margin-top: 20px;" class="scrollable-table">
+                        <p>請點擊「重新整理投票記錄」以載入資料</p>
+                    </div>
+                </div>
+                <div style="margin-top: 24px; background:#eef2f5; border-radius: 20px; padding: 16px;">
+                    <div class="tool-title" style="margin:0 0 8px 0;">🔥 Firebase Realtime Database 配置</div>
+                    <p>目前使用您提供的 Firebase 專案，資料庫連線正常。</p>
+                    <div class="firebase-config-code">
+                        databaseURL: https://hyp-tp-default-rtdb.firebaseio.com<br>
+                        專案ID: hyp-tp
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-<div id="customModal" class="modal-mask">
-    <div class="modal-container">
-        <div id="modalMessage">訊息內容</div>
-        <div id="modalButtons" class="modal-buttons"></div>
+    <div id="customModal" class="modal-mask">
+        <div class="modal-container">
+            <div id="modalMessage">訊息內容</div>
+            <div id="modalButtons" class="modal-buttons"></div>
+        </div>
     </div>
-</div>
 
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
-    import { getDatabase, ref, set, get, remove, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-database.js";
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
+        import { getDatabase, ref, set, get, remove, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-database.js";
 
-    const firebaseConfig = {
-        apiKey: "AIzaSyDCvkvGdcM6mgtCFUhdhystavYIABq3dqE",
-        authDomain: "hyp-tp.firebaseapp.com",
-        databaseURL: "https://hyp-tp-default-rtdb.firebaseio.com",
-        projectId: "hyp-tp",
-        storageBucket: "hyp-tp.firebasestorage.app",
-        messagingSenderId: "338994245282",
-        appId: "1:338994245282:web:9f69f8433968ed995471fb",
-        measurementId: "G-M43LXWJN8T"
-    };
+        const firebaseConfig = {
+            apiKey: "AIzaSyDCvkvGdcM6mgtCFUhdhystavYIABq3dqE",
+            authDomain: "hyp-tp.firebaseapp.com",
+            databaseURL: "https://hyp-tp-default-rtdb.firebaseio.com",
+            projectId: "hyp-tp",
+            storageBucket: "hyp-tp.firebasestorage.app",
+            messagingSenderId: "338994245282",
+            appId: "1:338994245282:web:9f69f8433968ed995471fb",
+            measurementId: "G-M43LXWJN8T"
+        };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-    console.log("Firebase Realtime Database 已連線");
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        console.log("Firebase Realtime Database 已連線");
 
-    // 全域資料
-    let studentList = [];
-    let teacherList = [];
-    let currentStudent = null;
-    let selectedTeachers = new Set();
-    let allVoteRecords = [];
-    let currentFilterClass = "";
-    let currentFilterStudentId = "";
+        // 全域資料
+        let studentList = [];
+        let teacherList = [];
+        let currentStudent = null;
+        let selectedTeachers = new Set();
+        let allVoteRecords = [];
+        let currentFilterClass = "";
+        let currentFilterStudentId = "";
 
-    // DOM 元素
-    const classSelect = document.getElementById('classSelect');
-    const studentIdSelect = document.getElementById('studentIdSelect');
-    const startVoteBtn = document.getElementById('startVoteBtn');
-    const entryPanel = document.getElementById('entryPanel');
-    const votingPanel = document.getElementById('votingPanel');
-    const teacherContainer = document.getElementById('teacherListContainer');
-    const selectedCounterSpan = document.getElementById('selectedCounter');
-    const confirmVoteBtn = document.getElementById('confirmVoteBtn');
-    const backToEntryBtn = document.getElementById('backToEntryBtn');
-    const currentStudentInfo = document.getElementById('currentStudentInfo');
-    const modal = document.getElementById('customModal');
-    const modalMessage = document.getElementById('modalMessage');
-    const modalButtons = document.getElementById('modalButtons');
-    
-    const toolLockedArea = document.getElementById('toolLockedArea');
-    const toolUnlockedArea = document.getElementById('toolUnlockedArea');
-    const adminPasswordInput = document.getElementById('adminPasswordInput');
-    const unlockToolsBtn = document.getElementById('unlockToolsBtn');
-    let isToolsUnlocked = false;
+        // DOM 元素
+        const classSelect = document.getElementById('classSelect');
+        const studentIdSelect = document.getElementById('studentIdSelect');
+        const startVoteBtn = document.getElementById('startVoteBtn');
+        const entryPanel = document.getElementById('entryPanel');
+        const votingPanel = document.getElementById('votingPanel');
+        const teacherContainer = document.getElementById('teacherListContainer');
+        const selectedCounterSpan = document.getElementById('selectedCounter');
+        const confirmVoteBtn = document.getElementById('confirmVoteBtn');
+        const backToEntryBtn = document.getElementById('backToEntryBtn');
+        const currentStudentInfo = document.getElementById('currentStudentInfo');
+        const modal = document.getElementById('customModal');
+        const modalMessage = document.getElementById('modalMessage');
+        const modalButtons = document.getElementById('modalButtons');
 
-    const filterClassSelect = document.getElementById('filterClassSelect');
-    const filterStudentIdSelect = document.getElementById('filterStudentIdSelect');
-    const applyFilterBtn = document.getElementById('applyFilterBtn');
-    const resetFilterBtn = document.getElementById('resetFilterBtn');
-    const deleteFilteredBtn = document.getElementById('deleteFilteredBtn');
+        const toolLockedArea = document.getElementById('toolLockedArea');
+        const toolUnlockedArea = document.getElementById('toolUnlockedArea');
+        const adminPasswordInput = document.getElementById('adminPasswordInput');
+        const unlockToolsBtn = document.getElementById('unlockToolsBtn');
+        let isToolsUnlocked = false;
 
-    function showModal(message, buttons = []) {
-        modalMessage.innerText = message;
-        modalButtons.innerHTML = '';
-        buttons.forEach(btn => {
-            const buttonEl = document.createElement('button');
-            buttonEl.innerText = btn.label;
-            if (btn.style) buttonEl.style.cssText = btn.style;
-            buttonEl.onclick = () => {
-                closeModal();
-                if (btn.onClick) btn.onClick();
-            };
-            modalButtons.appendChild(buttonEl);
-        });
-        modal.classList.add('active');
-    }
-    function closeModal() {
-        modal.classList.remove('active');
-    }
+        const filterClassSelect = document.getElementById('filterClassSelect');
+        const filterStudentIdSelect = document.getElementById('filterStudentIdSelect');
+        const applyFilterBtn = document.getElementById('applyFilterBtn');
+        const resetFilterBtn = document.getElementById('resetFilterBtn');
+        const deleteFilteredBtn = document.getElementById('deleteFilteredBtn');
 
-    function sortClasses(classes) {
-        return classes.sort((a, b) => {
-            const regex = /^P(\d+)([A-Za-z]?)$/i;
-            const matchA = a.match(regex);
-            const matchB = b.match(regex);
-            if (matchA && matchB) {
-                const numA = parseInt(matchA[1], 10);
-                const numB = parseInt(matchB[1], 10);
-                if (numA !== numB) return numA - numB;
-                const letterA = matchA[2] || '';
-                const letterB = matchB[2] || '';
-                return letterA.localeCompare(letterB);
-            }
-            return a.localeCompare(b, 'zh-Hant');
-        });
-    }
-
-    async function loadStudentData() {
-        try {
-            const res = await fetch('docs/namelist.json');
-            if (!res.ok) throw new Error(`HTTP ${res.status}`);
-            studentList = await res.json();
-            if (!Array.isArray(studentList)) studentList = [];
-            populateClassSelect();
-            populateFilterClassSelect();
-        } catch (err) {
-            console.warn("讀取 namelist.json 失敗，使用示範數據", err);
-            studentList = [
-                {班別:"P1C",學號:"103",姓名:"李小樂"},
-                {班別:"P1A",學號:"101",姓名:"王美美"},
-                {班別:"P1B",學號:"102",姓名:"張小美"},
-                {班別:"P1D",學號:"104",姓名:"陳大文"},
-                {班別:"P2A",學號:"201",姓名:"黃子軒"},
-                {班別:"P2B",學號:"202",姓名:"林宜靜"},
-                {班別:"P2C",學號:"203",姓名:"鄭明軒"}
-            ];
-            populateClassSelect();
-            populateFilterClassSelect();
-            showModal("⚠️ 未找到 docs/namelist.json，已載入示範學生資料。", [{label:"知道了"}]);
+        function showModal(message, buttons = []) {
+            modalMessage.innerText = message;
+            modalButtons.innerHTML = '';
+            buttons.forEach(btn => {
+                const buttonEl = document.createElement('button');
+                buttonEl.innerText = btn.label;
+                if (btn.style) buttonEl.style.cssText = btn.style;
+                buttonEl.onclick = () => {
+                    closeModal();
+                    if (btn.onClick) btn.onClick();
+                };
+                modalButtons.appendChild(buttonEl);
+            });
+            modal.classList.add('active');
         }
-    }
-    function populateClassSelect() {
-        let classes = [...new Set(studentList.map(s => s.班別))];
-        classes = sortClasses(classes);
-        classSelect.innerHTML = '<option value="">-- 選擇班別 --</option>';
-        classes.forEach(cls => {
-            const opt = document.createElement('option');
-            opt.value = cls;
-            opt.innerText = cls;
-            classSelect.appendChild(opt);
-        });
-        classSelect.disabled = false;
-        studentIdSelect.innerHTML = '<option value="">請先選擇班級</option>';
-        studentIdSelect.disabled = true;
-    }
-    function updateStudentIdByClass(className) {
-        if (!className) {
+
+        function closeModal() {
+            modal.classList.remove('active');
+        }
+
+        function sortClasses(classes) {
+            return classes.sort((a, b) => {
+                const regex = /^P(\d+)([A-Za-z]?)$/i;
+                const matchA = a.match(regex);
+                const matchB = b.match(regex);
+                if (matchA && matchB) {
+                    const numA = parseInt(matchA[1], 10);
+                    const numB = parseInt(matchB[1], 10);
+                    if (numA !== numB) return numA - numB;
+                    const letterA = matchA[2] || '';
+                    const letterB = matchB[2] || '';
+                    return letterA.localeCompare(letterB);
+                }
+                return a.localeCompare(b, 'zh-Hant');
+            });
+        }
+
+        async function loadStudentData() {
+            try {
+                const res = await fetch('docs/namelist.json');
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                studentList = await res.json();
+                if (!Array.isArray(studentList)) studentList = [];
+                populateClassSelect();
+                populateFilterClassSelect();
+            } catch (err) {
+                console.warn("讀取 namelist.json 失敗，使用示範數據", err);
+                studentList = [
+                    { 班別: "P1C", 學號: "103", 姓名: "李小樂" },
+                    { 班別: "P1A", 學號: "101", 姓名: "王美美" },
+                    { 班別: "P1B", 學號: "102", 姓名: "張小美" },
+                    { 班別: "P1D", 學號: "104", 姓名: "陳大文" },
+                    { 班別: "P2A", 學號: "201", 姓名: "黃子軒" },
+                    { 班別: "P2B", 學號: "202", 姓名: "林宜靜" },
+                    { 班別: "P2C", 學號: "203", 姓名: "鄭明軒" }
+                ];
+                populateClassSelect();
+                populateFilterClassSelect();
+                showModal("⚠️ 未找到 docs/namelist.json，已載入示範學生資料。", [{ label: "知道了" }]);
+            }
+        }
+
+        function populateClassSelect() {
+            let classes = [...new Set(studentList.map(s => s.班別))];
+            classes = sortClasses(classes);
+            classSelect.innerHTML = '<option value="">-- 選擇班別 --</option>';
+            classes.forEach(cls => {
+                const opt = document.createElement('option');
+                opt.value = cls;
+                opt.innerText = cls;
+                classSelect.appendChild(opt);
+            });
+            classSelect.disabled = false;
             studentIdSelect.innerHTML = '<option value="">請先選擇班級</option>';
             studentIdSelect.disabled = true;
-            return;
         }
-        let students = studentList.filter(s => s.班別 === className);
-        students.sort((a, b) => {
-            const numA = parseInt(a.學號, 10);
-            const numB = parseInt(b.學號, 10);
-            if (isNaN(numA) && isNaN(numB)) return String(a.學號).localeCompare(String(b.學號));
-            if (isNaN(numA)) return 1;
-            if (isNaN(numB)) return -1;
-            return numA - numB;
-        });
-        studentIdSelect.innerHTML = '<option value="">-- 選擇學號 --</option>';
-        students.forEach(s => {
-            const opt = document.createElement('option');
-            opt.value = s.學號;
-            opt.innerText = `${s.學號} - ${s.姓名}`;
-            opt.dataset.name = s.姓名;
-            studentIdSelect.appendChild(opt);
-        });
-        studentIdSelect.disabled = false;
-    }
-    classSelect.addEventListener('change', (e) => updateStudentIdByClass(e.target.value));
 
-    function populateFilterClassSelect() {
-        let classes = [...new Set(studentList.map(s => s.班別))];
-        classes = sortClasses(classes);
-        filterClassSelect.innerHTML = '<option value="">全部班別</option>';
-        classes.forEach(cls => {
-            const opt = document.createElement('option');
-            opt.value = cls;
-            opt.innerText = cls;
-            filterClassSelect.appendChild(opt);
-        });
-        filterClassSelect.disabled = false;
-        filterStudentIdSelect.innerHTML = '<option value="">請先選擇班別</option>';
-        filterStudentIdSelect.disabled = true;
-    }
-    function updateFilterStudentIdByClass(className) {
-        if (!className) {
+        function updateStudentIdByClass(className) {
+            if (!className) {
+                studentIdSelect.innerHTML = '<option value="">請先選擇班級</option>';
+                studentIdSelect.disabled = true;
+                return;
+            }
+            let students = studentList.filter(s => s.班別 === className);
+            students.sort((a, b) => {
+                const numA = parseInt(a.學號, 10);
+                const numB = parseInt(b.學號, 10);
+                if (isNaN(numA) && isNaN(numB)) return String(a.學號).localeCompare(String(b.學號));
+                if (isNaN(numA)) return 1;
+                if (isNaN(numB)) return -1;
+                return numA - numB;
+            });
+            studentIdSelect.innerHTML = '<option value="">-- 選擇學號 --</option>';
+            students.forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s.學號;
+                opt.innerText = `${s.學號} - ${s.姓名}`;
+                opt.dataset.name = s.姓名;
+                studentIdSelect.appendChild(opt);
+            });
+            studentIdSelect.disabled = false;
+        }
+        classSelect.addEventListener('change', (e) => updateStudentIdByClass(e.target.value));
+
+        function populateFilterClassSelect() {
+            let classes = [...new Set(studentList.map(s => s.班別))];
+            classes = sortClasses(classes);
+            filterClassSelect.innerHTML = '<option value="">全部班別</option>';
+            classes.forEach(cls => {
+                const opt = document.createElement('option');
+                opt.value = cls;
+                opt.innerText = cls;
+                filterClassSelect.appendChild(opt);
+            });
+            filterClassSelect.disabled = false;
             filterStudentIdSelect.innerHTML = '<option value="">請先選擇班別</option>';
             filterStudentIdSelect.disabled = true;
-            return;
         }
-        let students = studentList.filter(s => s.班別 === className);
-        students.sort((a, b) => {
-            const numA = parseInt(a.學號, 10);
-            const numB = parseInt(b.學號, 10);
-            if (isNaN(numA) && isNaN(numB)) return String(a.學號).localeCompare(String(b.學號));
-            if (isNaN(numA)) return 1;
-            if (isNaN(numB)) return -1;
-            return numA - numB;
-        });
-        filterStudentIdSelect.innerHTML = '<option value="">全部學號</option>';
-        students.forEach(s => {
-            const opt = document.createElement('option');
-            opt.value = s.學號;
-            opt.innerText = `${s.學號} - ${s.姓名}`;
-            filterStudentIdSelect.appendChild(opt);
-        });
-        filterStudentIdSelect.disabled = false;
-    }
-    filterClassSelect.addEventListener('change', (e) => {
-        updateFilterStudentIdByClass(e.target.value);
-    });
 
-    async function loadTeacherData() {
-        try {
-            const res = await fetch('docs/teacherlist.json');
-            if (!res.ok) throw new Error();
-            teacherList = await res.json();
-            if (!Array.isArray(teacherList)) teacherList = [];
-            teacherList = teacherList.map(t => ({
-                ...t,
-                縮寫: t.縮寫 || t.名字 || ""
-            }));
-        } catch (err) {
-            console.warn("讀取 teacherlist.json 失敗，使用示範教師", err);
-            teacherList = [
-                {編號:"T01", 名字:"張雅惠", 縮寫:"張老師"},
-                {編號:"T02", 名字:"李志明(科主任)", 縮寫:"李老師"},
-                {編號:"T03", 名字:"王雅欣", 縮寫:"王老師"},
-                {編號:"T04", 名字:"陳建宏", 縮寫:"陳老師"},
-                {編號:"T05", 名字:"林怡君(輔導)", 縮寫:"林老師"}
-            ];
-        }
-        renderTeacherGrid();
-    }
-
-    function formatTeacherName(name) {
-        if (!name) return '';
-        const match = name.match(/^([^\(（]+)[\(（](.+)[\)）]$/);
-        if (match) {
-            return `${match[1]}\n(${match[2]})`;
-        }
-        return name;
-    }
-
-    function renderTeacherGrid() {
-        if (!teacherContainer) return;
-        teacherContainer.innerHTML = '';
-        teacherList.forEach(teacher => {
-            const key = teacher.縮寫 || teacher.名字;
-            const card = document.createElement('div');
-            card.className = `teacher-card ${selectedTeachers.has(key) ? 'selected' : ''}`;
-            const numberHtml = `<div class="teacher-number">${teacher.編號 || ''}</div>`;
-            const displayName = formatTeacherName(teacher.名字);
-            const nameHtml = `<div class="teacher-name" style="white-space: pre-line;">${displayName}</div>`;
-            const badgeHtml = `<div class="vote-badge">${teacher.縮寫 || ''}</div>`;
-            card.innerHTML = numberHtml + nameHtml + badgeHtml;
-            card.onclick = (e) => {
-                e.stopPropagation();
-                toggleTeacher(key);
-            };
-            teacherContainer.appendChild(card);
-        });
-        updateSelectedCountDisplay();
-    }
-    function toggleTeacher(teacherKey) {
-        if (selectedTeachers.has(teacherKey)) {
-            selectedTeachers.delete(teacherKey);
-        } else {
-            if (selectedTeachers.size >= 4) {
-                showModal("❌ 最多只能選擇四位教師，請取消後再選。", [{label:"知道了"}]);
+        function updateFilterStudentIdByClass(className) {
+            if (!className) {
+                filterStudentIdSelect.innerHTML = '<option value="">請先選擇班別</option>';
+                filterStudentIdSelect.disabled = true;
                 return;
             }
-            selectedTeachers.add(teacherKey);
+            let students = studentList.filter(s => s.班別 === className);
+            students.sort((a, b) => {
+                const numA = parseInt(a.學號, 10);
+                const numB = parseInt(b.學號, 10);
+                if (isNaN(numA) && isNaN(numB)) return String(a.學號).localeCompare(String(b.學號));
+                if (isNaN(numA)) return 1;
+                if (isNaN(numB)) return -1;
+                return numA - numB;
+            });
+            filterStudentIdSelect.innerHTML = '<option value="">全部學號</option>';
+            students.forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s.學號;
+                opt.innerText = `${s.學號} - ${s.姓名}`;
+                filterStudentIdSelect.appendChild(opt);
+            });
+            filterStudentIdSelect.disabled = false;
         }
-        renderTeacherGrid();
-    }
-    function updateSelectedCountDisplay() {
-        if(selectedCounterSpan) selectedCounterSpan.innerText = `✅ 已選擇 ${selectedTeachers.size} / 4 位教師`;
-    }
+        filterClassSelect.addEventListener('change', (e) => {
+            updateFilterStudentIdByClass(e.target.value);
+        });
 
-    startVoteBtn.onclick = () => {
-        const selectedClass = classSelect.value;
-        const studentNo = studentIdSelect.value;
-        if (!selectedClass || !studentNo) {
-            showModal("請完整選擇班別和學號", [{label:"返回"}]);
-            return;
+        async function loadTeacherData() {
+            try {
+                const res = await fetch('docs/teacherlist.json');
+                if (!res.ok) throw new Error();
+                teacherList = await res.json();
+                if (!Array.isArray(teacherList)) teacherList = [];
+                teacherList = teacherList.map(t => ({
+                    ...t,
+                    縮寫: t.縮寫 || t.名字 || ""
+                }));
+            } catch (err) {
+                console.warn("讀取 teacherlist.json 失敗，使用示範教師", err);
+                teacherList = [
+                    { 編號: "T01", 名字: "張雅惠", 縮寫: "張老師" },
+                    { 編號: "T02", 名字: "李志明(科主任)", 縮寫: "李老師" },
+                    { 編號: "T03", 名字: "王雅欣", 縮寫: "王老師" },
+                    { 編號: "T04", 名字: "陳建宏", 縮寫: "陳老師" },
+                    { 編號: "T05", 名字: "林怡君(輔導)", 縮寫: "林老師" }
+                ];
+            }
+            renderTeacherGrid();
         }
-        const student = studentList.find(s => s.班別 === selectedClass && String(s.學號) === String(studentNo));
-        if (!student) {
-            showModal("❌ 沒有登記！您不在學生名單中，請聯繫老師。", [{label:"返回"}]);
-            return;
-        }
-        const studentName = student.姓名;
-        showModal(`✅ 確認身份：${student.班別} ${student.學號}號 ${studentName}，是否開始投票？`, [
-            {label:"返回", onClick:()=>{}},
-            {label:"確認投票", onClick:()=> enterVotingStage(student)}
-        ]);
-    };
-    
-    async function enterVotingStage(student) {
-        currentStudent = { class: student.班別, studentId: student.學號, name: student.姓名 };
-        const voteRef = ref(db, `votes/${currentStudent.class}_${currentStudent.studentId}`);
-        const snapshot = await get(voteRef);
-        if (snapshot.exists()) {
-            showModal("⚠️ 您已經投過票了，不可重複投票。", [{label:"返回首頁", onClick:()=> backToEntry()}]);
-            return;
-        }
-        currentStudentInfo.innerText = `👤 目前投票人：${currentStudent.class} ${currentStudent.studentId}號 ${currentStudent.name}`;
-        selectedTeachers.clear();
-        renderTeacherGrid();
-        entryPanel.style.display = 'none';
-        votingPanel.style.display = 'block';
-    }
-    
-    function backToEntry() {
-        votingPanel.style.display = 'none';
-        entryPanel.style.display = 'block';
-        selectedTeachers.clear();
-        currentStudent = null;
-    }
-    backToEntryBtn.onclick = backToEntry;
 
-    confirmVoteBtn.onclick = () => {
-        if (!currentStudent) {
-            showModal("學生資訊遺失，請返回重試", [{label:"返回", onClick:backToEntry}]);
-            return;
+        function formatTeacherName(name) {
+            if (!name) return '';
+            const match = name.match(/^([^\(（]+)[\(（](.+)[\)）]$/);
+            if (match) {
+                return `${match[1]}\n(${match[2]})`;
+            }
+            return name;
         }
-        const selectedCount = selectedTeachers.size;
-        if (selectedCount === 0) {
-            showModal("❌ 您尚未選擇任何教師，請至少選擇一位教師再提交。", [{label:"繼續選擇"}]);
-            return;
+
+        function renderTeacherGrid() {
+            if (!teacherContainer) return;
+            teacherContainer.innerHTML = '';
+            teacherList.forEach(teacher => {
+                const key = teacher.縮寫 || teacher.名字;
+                const card = document.createElement('div');
+                card.className = `teacher-card ${selectedTeachers.has(key) ? 'selected' : ''}`;
+                const numberHtml = `<div class="teacher-number">${teacher.編號 || ''}</div>`;
+                const displayName = formatTeacherName(teacher.名字);
+                const nameHtml = `<div class="teacher-name" style="white-space: pre-line;">${displayName}</div>`;
+                const badgeHtml = `<div class="vote-badge">${teacher.縮寫 || ''}</div>`;
+                card.innerHTML = numberHtml + nameHtml + badgeHtml;
+                card.onclick = (e) => {
+                    e.stopPropagation();
+                    toggleTeacher(key);
+                };
+                teacherContainer.appendChild(card);
+            });
+            updateSelectedCountDisplay();
         }
-        if (selectedCount === 4) {
-            submitVote();
-        } else if (selectedCount > 0 && selectedCount < 4) {
-            showModal(`您目前只選擇了 ${selectedCount} 位教師（未達4位），是否確定要直接提交？`, [
-                {label:"繼續選擇", onClick:()=>{}},
-                {label:"直接提交", onClick:()=> submitVote()}
+
+        function toggleTeacher(teacherKey) {
+            if (selectedTeachers.has(teacherKey)) {
+                selectedTeachers.delete(teacherKey);
+            } else {
+                if (selectedTeachers.size >= 4) {
+                    showModal("❌ 最多只能選擇四位教師，請取消後再選。", [{ label: "知道了" }]);
+                    return;
+                }
+                selectedTeachers.add(teacherKey);
+            }
+            renderTeacherGrid();
+        }
+
+        function updateSelectedCountDisplay() {
+            if (selectedCounterSpan) selectedCounterSpan.innerText = `✅ 已選擇 ${selectedTeachers.size} / 4 位教師`;
+        }
+
+        startVoteBtn.onclick = () => {
+            const selectedClass = classSelect.value;
+            const studentNo = studentIdSelect.value;
+            if (!selectedClass || !studentNo) {
+                showModal("請完整選擇班別和學號", [{ label: "返回" }]);
+                return;
+            }
+            const student = studentList.find(s => s.班別 === selectedClass && String(s.學號) === String(studentNo));
+            if (!student) {
+                showModal("❌ 沒有登記！您不在學生名單中，請聯繫老師。", [{ label: "返回" }]);
+                return;
+            }
+            const studentName = student.姓名;
+            showModal(`✅ 確認身份：${student.班別} ${student.學號}號 ${studentName}，是否開始投票？`, [
+                { label: "返回", onClick: () => {} },
+                { label: "確認投票", onClick: () => enterVotingStage(student) }
             ]);
-        }
-    };
-
-    async function submitVote() {
-        const selectedList = Array.from(selectedTeachers);
-        const voteRecord = {
-            class: currentStudent.class,
-            studentId: currentStudent.studentId,
-            studentName: currentStudent.name,
-            selectedTeachers: selectedList,
-            voteTime: serverTimestamp()
         };
-        const votePath = `votes/${currentStudent.class}_${currentStudent.studentId}`;
-        try {
-            const voteRef = ref(db, votePath);
+
+        async function enterVotingStage(student) {
+            currentStudent = { class: student.班別, studentId: student.學號, name: student.姓名 };
+            const voteRef = ref(db, `votes/${currentStudent.class}_${currentStudent.studentId}`);
             const snapshot = await get(voteRef);
             if (snapshot.exists()) {
-                showModal("您已經投過票了！無法重複提交", [{label:"返回首頁", onClick:backToEntry}]);
+                showModal("⚠️ 您已經投過票了，不可重複投票。", [{ label: "返回首頁", onClick: () => backToEntry() }]);
                 return;
             }
-            await set(voteRef, voteRecord);
-            showModal("🎉 投票成功！感謝您的參與。", [{label:"返回首頁", onClick:()=> { backToEntry(); }}]);
-        } catch (err) {
-            console.error(err);
-            showModal("投票提交失敗，請檢查網路或資料庫權限", [{label:"重試"}]);
+            currentStudentInfo.innerText =
+                `👤 目前投票人：${currentStudent.class} ${currentStudent.studentId}號 ${currentStudent.name}`;
+            selectedTeachers.clear();
+            renderTeacherGrid();
+            entryPanel.style.display = 'none';
+            votingPanel.style.display = 'block';
         }
-    }
 
-    function unlockTools(password) {
-        if (password === "Hyp26dhl!") {
-            isToolsUnlocked = true;
-            toolLockedArea.style.display = "none";
-            toolUnlockedArea.style.display = "block";
-            loadVoteStatistics();
-            loadAllVoteRecords();
-            return true;
-        } else {
-            showModal("密碼錯誤，無法進入管理工具。", [{label:"確定", onClick:()=>{ adminPasswordInput.value = ""; }}]);
-            return false;
+        function backToEntry() {
+            votingPanel.style.display = 'none';
+            entryPanel.style.display = 'block';
+            selectedTeachers.clear();
+            currentStudent = null;
         }
-    }
-    unlockToolsBtn.onclick = () => {
-        const pwd = adminPasswordInput.value;
-        unlockTools(pwd);
-    };
-    function syncToolsTabUI() {
-        if (!isToolsUnlocked) {
-            toolLockedArea.style.display = "block";
-            toolUnlockedArea.style.display = "none";
-        } else {
-            toolLockedArea.style.display = "none";
-            toolUnlockedArea.style.display = "block";
-            loadVoteStatistics();
-            loadAllVoteRecords();
-        }
-    }
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            const targetId = btn.dataset.tab;
-            document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active-pane'));
-            document.getElementById(targetId).classList.add('active-pane');
-            if (targetId === 'toolsTab') {
-                syncToolsTabUI();
+        backToEntryBtn.onclick = backToEntry;
+
+        confirmVoteBtn.onclick = () => {
+            if (!currentStudent) {
+                showModal("學生資訊遺失，請返回重試", [{ label: "返回", onClick: backToEntry }]);
+                return;
             }
-        });
-    });
+            const selectedCount = selectedTeachers.size;
+            if (selectedCount === 0) {
+                showModal("❌ 您尚未選擇任何教師，請至少選擇一位教師再提交。", [{ label: "繼續選擇" }]);
+                return;
+            }
+            if (selectedCount === 4) {
+                submitVote();
+            } else if (selectedCount > 0 && selectedCount < 4) {
+                showModal(`您目前只選擇了 ${selectedCount} 位教師（未達4位），是否確定要直接提交？`, [
+                    { label: "繼續選擇", onClick: () => {} },
+                    { label: "直接提交", onClick: () => submitVote() }
+                ]);
+            }
+        };
 
-    function excelToJson(file, headerMapping, fileNamePrefix) {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const data = new Uint8Array(e.target.result);
-                const workbook = XLSX.read(data, {type: 'array'});
-                const sheet = workbook.Sheets[workbook.SheetNames[0]];
-                const rows = XLSX.utils.sheet_to_json(sheet, {header: 1, defval: ""});
-                if (!rows || rows.length < 2) reject("表格資料不足");
-                const headers = rows[0];
-                const idxMap = {};
-                headerMapping.forEach((col, i) => {
-                    const findIndex = headers.findIndex(h => h && h.toString().trim() === col);
-                    idxMap[col] = findIndex !== -1 ? findIndex : i;
-                });
-                const result = [];
-                for (let i=1; i<rows.length; i++) {
-                    const row = rows[i];
-                    if (!row || row.every(cell => !cell)) continue;
-                    const obj = {};
-                    headerMapping.forEach(col => {
-                        let val = row[idxMap[col]];
-                        obj[col] = (val !== undefined && val !== null) ? val.toString().trim() : "";
-                    });
-                    if (obj["名字"] || obj["編號"]) result.push(obj);
-                }
-                const jsonStr = JSON.stringify(result, null, 2);
-                const blob = new Blob([jsonStr], {type:"application/json"});
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `${fileNamePrefix}.json`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-                resolve(result.length);
+        async function submitVote() {
+            const selectedList = Array.from(selectedTeachers);
+            const voteRecord = {
+                class: currentStudent.class,
+                studentId: currentStudent.studentId,
+                studentName: currentStudent.name,
+                selectedTeachers: selectedList,
+                voteTime: serverTimestamp()
             };
-            reader.onerror = reject;
-            reader.readAsArrayBuffer(file);
-        });
-    }
-    document.getElementById('convertStudentBtn') && (document.getElementById('convertStudentBtn').onclick = () => {
-        const fileInput = document.getElementById('studentExcelInput');
-        if (!fileInput.files.length) { showModal("請上傳學生名單 Excel", [{label:"確定"}]); return; }
-        excelToJson(fileInput.files[0], ["班別","學號","姓名"], "namelist").then(cnt => {
-            showModal(`✅ 轉換成功！共 ${cnt} 條學生記錄，已下載 namelist.json`, [{label:"OK"}]);
-        }).catch(e => showModal("轉換失敗，請檢查表頭格式(班別,學號,姓名)", [{label:"關閉"}]));
-    });
-    document.getElementById('convertTeacherBtn') && (document.getElementById('convertTeacherBtn').onclick = () => {
-        const fileInput = document.getElementById('teacherExcelInput');
-        if (!fileInput.files.length) { showModal("請上傳教師名單 Excel (欄位: 編號,名字,縮寫)", [{label:"確定"}]); return; }
-        excelToJson(fileInput.files[0], ["編號","名字","縮寫"], "teacherlist").then(cnt => {
-            showModal(`✅ 轉換成功！共 ${cnt} 位教師，已下載 teacherlist.json`, [{label:"OK"}]);
-        }).catch(e => showModal("轉換失敗，請確保表頭包含：編號,名字,縮寫", [{label:"關閉"}]));
-    });
+            const votePath = `votes/${currentStudent.class}_${currentStudent.studentId}`;
+            try {
+                const voteRef = ref(db, votePath);
+                const snapshot = await get(voteRef);
+                if (snapshot.exists()) {
+                    showModal("您已經投過票了！無法重複提交", [{ label: "返回首頁", onClick: backToEntry }]);
+                    return;
+                }
+                await set(voteRef, voteRecord);
+                showModal("🎉 投票成功！感謝您的參與。", [{ label: "返回首頁", onClick: () => { backToEntry(); } }]);
+            } catch (err) {
+                console.error(err);
+                showModal("投票提交失敗，請檢查網路或資料庫權限", [{ label: "重試" }]);
+            }
+        }
 
-    async function loadVoteStatistics() {
-        const statsDiv = document.getElementById('statsResultArea');
-        if (!statsDiv) return;
-        statsDiv.innerHTML = '<p>載入統計中...</p>';
-        try {
-            const votesRef = ref(db, 'votes');
-            const snapshot = await get(votesRef);
-            const votesData = snapshot.val();
-            const votes = votesData ? Object.values(votesData) : [];
-            const teacherVotes = new Map();
-            teacherList.forEach(t => {
-                const key = t.縮寫 || t.名字;
-                teacherVotes.set(key, { displayName: t.名字, short: t.縮寫 || t.名字, count: 0 });
+        function unlockTools(password) {
+            if (password === "Hyp26dhl!") {
+                isToolsUnlocked = true;
+                toolLockedArea.style.display = "none";
+                toolUnlockedArea.style.display = "block";
+                loadVoteStatistics();
+                loadAllVoteRecords();
+                return true;
+            } else {
+                showModal("密碼錯誤，無法進入管理工具。", [{ label: "確定", onClick: () => { adminPasswordInput.value =
+                        ""; } }]);
+                return false;
+            }
+        }
+        unlockToolsBtn.onclick = () => {
+            const pwd = adminPasswordInput.value;
+            unlockTools(pwd);
+        };
+
+        function syncToolsTabUI() {
+            if (!isToolsUnlocked) {
+                toolLockedArea.style.display = "block";
+                toolUnlockedArea.style.display = "none";
+            } else {
+                toolLockedArea.style.display = "none";
+                toolUnlockedArea.style.display = "block";
+                loadVoteStatistics();
+                loadAllVoteRecords();
+            }
+        }
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                const targetId = btn.dataset.tab;
+                document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active-pane'));
+                document.getElementById(targetId).classList.add('active-pane');
+                if (targetId === 'toolsTab') {
+                    syncToolsTabUI();
+                }
             });
-            for (const vote of votes) {
-                const selected = vote.selectedTeachers || [];
-                for (const teacherKey of selected) {
-                    if (teacherVotes.has(teacherKey)) {
-                        teacherVotes.get(teacherKey).count++;
-                    } else {
-                        if(!teacherVotes.has(teacherKey)) teacherVotes.set(teacherKey, { displayName: teacherKey, short: teacherKey, count: 1});
-                        else teacherVotes.get(teacherKey).count++;
+        });
+
+        function excelToJson(file, headerMapping, fileNamePrefix) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "" });
+                    if (!rows || rows.length < 2) reject("表格資料不足");
+                    const headers = rows[0];
+                    const idxMap = {};
+                    headerMapping.forEach((col, i) => {
+                        const findIndex = headers.findIndex(h => h && h.toString().trim() === col);
+                        idxMap[col] = findIndex !== -1 ? findIndex : i;
+                    });
+                    const result = [];
+                    for (let i = 1; i < rows.length; i++) {
+                        const row = rows[i];
+                        if (!row || row.every(cell => !cell)) continue;
+                        const obj = {};
+                        headerMapping.forEach(col => {
+                            let val = row[idxMap[col]];
+                            obj[col] = (val !== undefined && val !== null) ? val.toString().trim() : "";
+                        });
+                        if (obj["名字"] || obj["編號"]) result.push(obj);
+                    }
+                    const jsonStr = JSON.stringify(result, null, 2);
+                    const blob = new Blob([jsonStr], { type: "application/json" });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `${fileNamePrefix}.json`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    resolve(result.length);
+                };
+                reader.onerror = reject;
+                reader.readAsArrayBuffer(file);
+            });
+        }
+        document.getElementById('convertStudentBtn') && (document.getElementById('convertStudentBtn').onclick = () => {
+            const fileInput = document.getElementById('studentExcelInput');
+            if (!fileInput.files.length) { showModal("請上傳學生名單 Excel", [{ label: "確定" }]);
+                return; }
+            excelToJson(fileInput.files[0], ["班別", "學號", "姓名"], "namelist").then(cnt => {
+                showModal(`✅ 轉換成功！共 ${cnt} 條學生記錄，已下載 namelist.json`, [{ label: "OK" }]);
+            }).catch(e => showModal("轉換失敗，請檢查表頭格式(班別,學號,姓名)", [{ label: "關閉" }]));
+        });
+        document.getElementById('convertTeacherBtn') && (document.getElementById('convertTeacherBtn').onclick = () => {
+            const fileInput = document.getElementById('teacherExcelInput');
+            if (!fileInput.files.length) { showModal("請上傳教師名單 Excel (欄位: 編號,名字,縮寫)", [{ label: "確定" }]);
+                return; }
+            excelToJson(fileInput.files[0], ["編號", "名字", "縮寫"], "teacherlist").then(cnt => {
+                showModal(`✅ 轉換成功！共 ${cnt} 位教師，已下載 teacherlist.json`, [{ label: "OK" }]);
+            }).catch(e => showModal("轉換失敗，請確保表頭包含：編號,名字,縮寫", [{ label: "關閉" }]));
+        });
+
+        async function loadVoteStatistics() {
+            const statsDiv = document.getElementById('statsResultArea');
+            if (!statsDiv) return;
+            statsDiv.innerHTML = '<p>載入統計中...</p>';
+            try {
+                const votesRef = ref(db, 'votes');
+                const snapshot = await get(votesRef);
+                const votesData = snapshot.val();
+                const votes = votesData ? Object.values(votesData) : [];
+                const teacherVotes = new Map();
+                teacherList.forEach(t => {
+                    const key = t.縮寫 || t.名字;
+                    teacherVotes.set(key, { displayName: t.名字, short: t.縮寫 || t.名字, count: 0 });
+                });
+                for (const vote of votes) {
+                    const selected = vote.selectedTeachers || [];
+                    for (const teacherKey of selected) {
+                        if (teacherVotes.has(teacherKey)) {
+                            teacherVotes.get(teacherKey).count++;
+                        } else {
+                            if (!teacherVotes.has(teacherKey)) teacherVotes.set(teacherKey, { displayName: teacherKey,
+                                short: teacherKey, count: 1 });
+                            else teacherVotes.get(teacherKey).count++;
+                        }
                     }
                 }
-            }
-            const sorted = Array.from(teacherVotes.values()).sort((a,b) => b.count - a.count);
-            let html = '<table class="vote-stats-table"><thead><tr><th>教師姓名</th><th>縮寫/代號</th><th>得票數</th></tr></thead><tbody>';
-            sorted.forEach(t => {
-                html += `<tr><td>${t.displayName}</td><td>${t.short}</td><td style="font-weight:bold;">${t.count}</td></tr>`;
-            });
-            html += '</tbody><table><div>總投票人數: ' + votes.length + '</div>';
-            statsDiv.innerHTML = html;
-        } catch(e) {
-            statsDiv.innerHTML = '<p>讀取失敗，請檢查 Realtime Database 權限</p>';
-            console.error(e);
-        }
-    }
-    document.getElementById('refreshStatsBtn') && (document.getElementById('refreshStatsBtn').onclick = loadVoteStatistics);
-    document.getElementById('exportStatsExcelBtn') && (document.getElementById('exportStatsExcelBtn').onclick = async () => {
-        try {
-            const votesRef = ref(db, 'votes');
-            const snapshot = await get(votesRef);
-            const votesData = snapshot.val();
-            const votes = votesData ? Object.values(votesData) : [];
-            const teacherMapStat = new Map();
-            votes.forEach(v => {
-                (v.selectedTeachers || []).forEach(tch => {
-                    teacherMapStat.set(tch, (teacherMapStat.get(tch) || 0) + 1);
+                const sorted = Array.from(teacherVotes.values()).sort((a, b) => b.count - a.count);
+                let html =
+                    '<table class="vote-stats-table"><thead><tr><th>教師姓名</th><th>縮寫/代號</th><th>得票數</th></tr></thead><tbody>';
+                sorted.forEach(t => {
+                    html +=
+                        `<tr><td>${t.displayName}</td><td>${t.short}</td><td style="font-weight:bold;">${t.count}</td></tr>`;
                 });
-            });
-            const exportData = Array.from(teacherMapStat.entries()).map(([teacherKey,票數]) => {
-                const teacherObj = teacherList.find(t => (t.縮寫 || t.名字) === teacherKey);
-                const teacherName = teacherObj ? teacherObj.名字 : teacherKey;
-                return { 教師姓名: teacherName, 縮寫: teacherKey, 得票數: 票數 };
-            });
-            const ws = XLSX.utils.json_to_sheet(exportData);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "教師得票統計");
-            XLSX.writeFile(wb, `教師票數統計_${new Date().toISOString().slice(0,19)}.xlsx`);
-            showModal("匯出成功", [{label:"關閉"}]);
-        } catch(e) {
-            showModal("匯出失敗", [{label:"關閉"}]);
+                html += '</tbody><table><div>總投票人數: ' + votes.length + '</div>';
+                statsDiv.innerHTML = html;
+            } catch (e) {
+                statsDiv.innerHTML = '<p>讀取失敗，請檢查 Realtime Database 權限</p>';
+                console.error(e);
+            }
         }
-    });
+        document.getElementById('refreshStatsBtn') && (document.getElementById('refreshStatsBtn').onclick =
+        loadVoteStatistics);
+        document.getElementById('exportStatsExcelBtn') && (document.getElementById('exportStatsExcelBtn').onclick =
+            async () => {
+                try {
+                    const votesRef = ref(db, 'votes');
+                    const snapshot = await get(votesRef);
+                    const votesData = snapshot.val();
+                    const votes = votesData ? Object.values(votesData) : [];
+                    const teacherMapStat = new Map();
+                    votes.forEach(v => {
+                        (v.selectedTeachers || []).forEach(tch => {
+                            teacherMapStat.set(tch, (teacherMapStat.get(tch) || 0) + 1);
+                        });
+                    });
+                    const exportData = Array.from(teacherMapStat.entries()).map(([teacherKey, 票數]) => {
+                        const teacherObj = teacherList.find(t => (t.縮寫 || t.名字) === teacherKey);
+                        const teacherName = teacherObj ? teacherObj.名字 : teacherKey;
+                        return { 教師姓名: teacherName, 縮寫: teacherKey, 得票數: 票數 };
+                    });
+                    const ws = XLSX.utils.json_to_sheet(exportData);
+                    const wb = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(wb, ws, "教師得票統計");
+                    XLSX.writeFile(wb, `教師票數統計_${new Date().toISOString().slice(0,19)}.xlsx`);
+                    showModal("匯出成功", [{ label: "關閉" }]);
+                } catch (e) {
+                    showModal("匯出失敗", [{ label: "關閉" }]);
+                }
+            });
 
-    async function loadAllVoteRecords() {
-        const recordsDiv = document.getElementById('recordsResultArea');
-        if (!recordsDiv) return;
-        recordsDiv.innerHTML = '<p>載入投票記錄中...</p>';
-        try {
-            const votesRef = ref(db, 'votes');
-            const snapshot = await get(votesRef);
-            const votesData = snapshot.val();
-            if (!votesData) {
-                allVoteRecords = [];
-                recordsDiv.innerHTML = '<p>尚無任何投票記錄。</p>';
+        async function loadAllVoteRecords() {
+            const recordsDiv = document.getElementById('recordsResultArea');
+            if (!recordsDiv) return;
+            recordsDiv.innerHTML = '<p>載入投票記錄中...</p>';
+            try {
+                const votesRef = ref(db, 'votes');
+                const snapshot = await get(votesRef);
+                const votesData = snapshot.val();
+                if (!votesData) {
+                    allVoteRecords = [];
+                    recordsDiv.innerHTML = '<p>尚無任何投票記錄。</p>';
+                    return;
+                }
+                let records = [];
+                for (const [key, value] of Object.entries(votesData)) {
+                    records.push({
+                        id: key,
+                        class: value.class || '',
+                        studentId: value.studentId || '',
+                        studentName: value.studentName || '',
+                        selectedTeachers: value.selectedTeachers || [],
+                        voteTime: value.voteTime ? new Date(value.voteTime).toLocaleString() :
+                            '未知時間'
+                    });
+                }
+                records.sort((a, b) => (b.voteTime > a.voteTime ? 1 : -1));
+                allVoteRecords = records;
+                currentFilterClass = "";
+                currentFilterStudentId = "";
+                filterClassSelect.value = "";
+                filterStudentIdSelect.innerHTML = '<option value="">請先選擇班別</option>';
+                filterStudentIdSelect.disabled = true;
+                renderFilteredRecords();
+            } catch (e) {
+                recordsDiv.innerHTML = '<p>讀取記錄失敗，請檢查權限</p>';
+                console.error(e);
+            }
+        }
+
+        function renderFilteredRecords() {
+            const recordsDiv = document.getElementById('recordsResultArea');
+            let filtered = [...allVoteRecords];
+            if (currentFilterClass) {
+                filtered = filtered.filter(rec => rec.class === currentFilterClass);
+            }
+            if (currentFilterStudentId) {
+                filtered = filtered.filter(rec => rec.studentId === currentFilterStudentId);
+            }
+            if (filtered.length === 0) {
+                recordsDiv.innerHTML = '<p>沒有符合篩選條件的投票記錄。</p>';
                 return;
             }
-            let records = [];
-            for (const [key, value] of Object.entries(votesData)) {
-                records.push({
-                    id: key,
-                    class: value.class || '',
-                    studentId: value.studentId || '',
-                    studentName: value.studentName || '',
-                    selectedTeachers: value.selectedTeachers || [],
-                    voteTime: value.voteTime ? new Date(value.voteTime).toLocaleString() : '未知時間'
-                });
+            let html =
+                '<table class="vote-records-table"><thead><tr><th>班級</th><th>學號</th><th>姓名</th><th>選擇人數</th><th>投票時間</th></tr></thead><tbody>';
+            for (const rec of filtered) {
+                const teachersCount = rec.selectedTeachers.length + " 位教師";
+                html += `<tr>
+                    <td>${rec.class}</td>
+                    <td>${rec.studentId}</td>
+                    <td>${rec.studentName}</td>
+                    <td>${teachersCount}</td>
+                    <td>${rec.voteTime}</td>
+                </tr>`;
             }
-            records.sort((a,b) => (b.voteTime > a.voteTime ? 1 : -1));
-            allVoteRecords = records;
+            html += '</tbody></table>';
+            recordsDiv.innerHTML = html;
+        }
+
+        // 刪除功能：根據篩選條件刪除記錄
+        async function deleteRecordsByFilter() {
+            const selectedClass = filterClassSelect.value;
+            const selectedStudentId = filterStudentIdSelect.value;
+            if (!selectedClass) {
+                showModal("請至少選擇一個班別進行刪除。", [{ label: "確定" }]);
+                return;
+            }
+            let confirmMsg = "";
+            let recordsToDelete = [];
+            if (selectedStudentId && selectedStudentId !== "") {
+                // 刪除特定學生
+                recordsToDelete = allVoteRecords.filter(rec => rec.class === selectedClass && rec.studentId ===
+                    selectedStudentId);
+                if (recordsToDelete.length === 0) {
+                    showModal(`沒有找到 ${selectedClass} ${selectedStudentId} 的投票記錄。`, [{ label: "確定" }]);
+                    return;
+                }
+                confirmMsg = `確定要刪除 ${selectedClass} ${selectedStudentId} 的投票記錄嗎？此操作無法復原。`;
+            } else {
+                // 刪除整個班級
+                recordsToDelete = allVoteRecords.filter(rec => rec.class === selectedClass);
+                if (recordsToDelete.length === 0) {
+                    showModal(`沒有找到 ${selectedClass} 的任何投票記錄。`, [{ label: "確定" }]);
+                    return;
+                }
+                confirmMsg = `確定要刪除 ${selectedClass} 全部 ${recordsToDelete.length} 筆投票記錄嗎？此操作無法復原。`;
+            }
+            showModal(confirmMsg, [
+                { label: "取消", onClick: () => {} },
+                {
+                    label: "確認刪除",
+                    onClick: async () => {
+                        try {
+                            for (const rec of recordsToDelete) {
+                                await remove(ref(db, `votes/${rec.id}`));
+                            }
+                            showModal("刪除成功", [{ label: "確定", onClick: () => { loadAllVoteRecords();
+                                    loadVoteStatistics(); } }]);
+                            loadAllVoteRecords();
+                            loadVoteStatistics();
+                        } catch (err) {
+                            showModal("刪除失敗", [{ label: "關閉" }]);
+                        }
+                    }
+                }
+            ]);
+        }
+
+        applyFilterBtn.addEventListener('click', () => {
+            currentFilterClass = filterClassSelect.value;
+            if (currentFilterClass && filterStudentIdSelect.value && filterStudentIdSelect.value !== "") {
+                currentFilterStudentId = filterStudentIdSelect.value;
+            } else {
+                currentFilterStudentId = "";
+            }
+            renderFilteredRecords();
+        });
+        resetFilterBtn.addEventListener('click', () => {
             currentFilterClass = "";
             currentFilterStudentId = "";
             filterClassSelect.value = "";
             filterStudentIdSelect.innerHTML = '<option value="">請先選擇班別</option>';
             filterStudentIdSelect.disabled = true;
             renderFilteredRecords();
-        } catch(e) {
-            recordsDiv.innerHTML = '<p>讀取記錄失敗，請檢查權限</p>';
-            console.error(e);
-        }
-    }
+        });
+        deleteFilteredBtn.addEventListener('click', deleteRecordsByFilter);
 
-    function renderFilteredRecords() {
-        const recordsDiv = document.getElementById('recordsResultArea');
-        let filtered = [...allVoteRecords];
-        if (currentFilterClass) {
-            filtered = filtered.filter(rec => rec.class === currentFilterClass);
-        }
-        if (currentFilterStudentId) {
-            filtered = filtered.filter(rec => rec.studentId === currentFilterStudentId);
-        }
-        if (filtered.length === 0) {
-            recordsDiv.innerHTML = '<p>沒有符合篩選條件的投票記錄。</p>';
-            return;
-        }
-        let html = '<table class="vote-records-table"><thead><tr><th>班級</th><th>學號</th><th>姓名</th><th>投票對象</th><th>投票時間</th></tr></thead><tbody>';
-        for (const rec of filtered) {
-            const teachersStr = rec.selectedTeachers.join('、');
-            html += `<tr>
-                <td>${rec.class}</td>
-                <td>${rec.studentId}</td>
-                <td>${rec.studentName}</td>
-                <td style="max-width:200px; word-break:break-all;">${teachersStr}</td>
-                <td>${rec.voteTime}</td>
-            </tr>`;
-        }
-        html += '</tbody></table>';
-        recordsDiv.innerHTML = html;
-    }
+        document.getElementById('refreshRecordsBtn') && (document.getElementById('refreshRecordsBtn').onclick = () => {
+            loadAllVoteRecords();
+        });
 
-    // 刪除功能：根據篩選條件刪除記錄
-    async function deleteRecordsByFilter() {
-        const selectedClass = filterClassSelect.value;
-        const selectedStudentId = filterStudentIdSelect.value;
-        if (!selectedClass) {
-            showModal("請至少選擇一個班別進行刪除。", [{label:"確定"}]);
-            return;
-        }
-        let confirmMsg = "";
-        let recordsToDelete = [];
-        if (selectedStudentId && selectedStudentId !== "") {
-            // 刪除特定學生
-            recordsToDelete = allVoteRecords.filter(rec => rec.class === selectedClass && rec.studentId === selectedStudentId);
-            if (recordsToDelete.length === 0) {
-                showModal(`沒有找到 ${selectedClass} ${selectedStudentId} 的投票記錄。`, [{label:"確定"}]);
-                return;
-            }
-            confirmMsg = `確定要刪除 ${selectedClass} ${selectedStudentId} 的投票記錄嗎？此操作無法復原。`;
-        } else {
-            // 刪除整個班級
-            recordsToDelete = allVoteRecords.filter(rec => rec.class === selectedClass);
-            if (recordsToDelete.length === 0) {
-                showModal(`沒有找到 ${selectedClass} 的任何投票記錄。`, [{label:"確定"}]);
-                return;
-            }
-            confirmMsg = `確定要刪除 ${selectedClass} 全部 ${recordsToDelete.length} 筆投票記錄嗎？此操作無法復原。`;
-        }
-        showModal(confirmMsg, [
-            {label:"取消", onClick:()=>{}},
-            {label:"確認刪除", onClick: async () => {
-                try {
-                    for (const rec of recordsToDelete) {
-                        await remove(ref(db, `votes/${rec.id}`));
-                    }
-                    showModal("刪除成功", [{label:"確定", onClick:()=> { loadAllVoteRecords(); loadVoteStatistics(); }}]);
-                    loadAllVoteRecords();
-                    loadVoteStatistics();
-                } catch(err) {
-                    showModal("刪除失敗", [{label:"關閉"}]);
-                }
-            }}
-        ]);
-    }
-
-    applyFilterBtn.addEventListener('click', () => {
-        currentFilterClass = filterClassSelect.value;
-        if (currentFilterClass && filterStudentIdSelect.value && filterStudentIdSelect.value !== "") {
-            currentFilterStudentId = filterStudentIdSelect.value;
-        } else {
-            currentFilterStudentId = "";
-        }
-        renderFilteredRecords();
-    });
-    resetFilterBtn.addEventListener('click', () => {
-        currentFilterClass = "";
-        currentFilterStudentId = "";
-        filterClassSelect.value = "";
-        filterStudentIdSelect.innerHTML = '<option value="">請先選擇班別</option>';
-        filterStudentIdSelect.disabled = true;
-        renderFilteredRecords();
-    });
-    deleteFilteredBtn.addEventListener('click', deleteRecordsByFilter);
-
-    document.getElementById('refreshRecordsBtn') && (document.getElementById('refreshRecordsBtn').onclick = () => {
-        loadAllVoteRecords();
-    });
-
-    (async function init() {
-        await loadStudentData();
-        await loadTeacherData();
-        syncToolsTabUI();
-    })();
-</script>
+        (async function init() {
+            await loadStudentData();
+            await loadTeacherData();
+            syncToolsTabUI();
+        })();
+    </script>
 </body>
 </html>
