@@ -502,7 +502,7 @@
                         <p>點擊重新整理或等待載入...</p>
                     </div>
                     <hr />
-                    <div class="tool-title">🗑️ 3. 投票記錄管理 (可刪除特定學生投票)</div>
+                    <div class="tool-title">🗑️ 3. 投票記錄管理 </div>
                     <!-- 篩選列：重新整理按鈕在最左邊，班別與學號選擇框縮短 -->
                     <div class="filter-bar">
                         <button id="refreshRecordsBtn" class="btn-refresh" style="background: #3f7e6b;">🔄 重新整理投票記錄</button>
@@ -758,13 +758,8 @@
                     縮寫: t.縮寫 || t.名字 || ""
                 }));
             } catch (err) {
-                console.warn("讀取 teacherlist.json 失敗，使用示範教師", err);
+                console.warn("讀取 teacherlist.json 失敗", err);
                 teacherList = [
-                    { 編號: "T01", 名字: "張雅惠", 縮寫: "張老師" },
-                    { 編號: "T02", 名字: "李志明(科主任)", 縮寫: "李老師" },
-                    { 編號: "T03", 名字: "王雅欣", 縮寫: "王老師" },
-                    { 編號: "T04", 名字: "陳建宏", 縮寫: "陳老師" },
-                    { 編號: "T05", 名字: "林怡君(輔導)", 縮寫: "林老師" }
                 ];
             }
             renderTeacherGrid();
