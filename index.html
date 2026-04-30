@@ -314,7 +314,8 @@
         }
 
         .vote-stats-table,
-        .vote-records-table {
+        .vote-records-table,
+        .unvoted-students-table {
             width: 100%;
             border-collapse: collapse;
             margin: 16px 0;
@@ -324,7 +325,9 @@
         .vote-stats-table th,
         .vote-stats-table td,
         .vote-records-table th,
-        .vote-records-table td {
+        .vote-records-table td,
+        .unvoted-students-table th,
+        .unvoted-students-table td {
             padding: 10px 6px;
             border-bottom: 1px solid #cfe2e8;
             text-align: left;
@@ -502,7 +505,7 @@
                         <p>點擊重新整理或等待載入...</p>
                     </div>
                     <hr />
-                    <div class="tool-title">🗑️ 3. 投票記錄管理 </div>
+                    <div class="tool-title">🗑️ 3. 投票記錄管理 (可刪除特定學生投票)</div>
                     <!-- 篩選列：重新整理按鈕在最左邊，班別與學號選擇框縮短 -->
                     <div class="filter-bar">
                         <button id="refreshRecordsBtn" class="btn-refresh" style="background: #3f7e6b;">🔄 重新整理投票記錄</button>
@@ -524,6 +527,17 @@
                     </div>
                     <div id="recordsResultArea" style="margin-top: 20px;" class="scrollable-table">
                         <p>請點擊「重新整理投票記錄」以載入資料</p>
+                    </div>
+
+                    <!-- 新增：未投票學生名單 -->
+                    <hr />
+                    <div class="tool-title">📋 4. 未投票學生名單</div>
+                    <div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 12px;">
+                        <button id="loadUnvotedStudentsBtn" style="width: auto; background: #3f7e6b;">🔄 載入未投票學生</button>
+                        <button id="exportUnvotedExcelBtn" style="width: auto; background: #2c6e9e;">📎 匯出 Excel</button>
+                    </div>
+                    <div id="unvotedStudentsArea" style="margin-top: 12px; max-height: 300px; overflow-x: auto;" class="scrollable-table">
+                        <p>點擊「載入未投票學生」以顯示名單</p>
                     </div>
                 </div>
                 <div style="margin-top: 24px; background:#eef2f5; border-radius: 20px; padding: 16px;">
@@ -572,6 +586,7 @@
         let allVoteRecords = [];
         let currentFilterClass = "";
         let currentFilterStudentId = "";
+        let unvotedStudents = []; // 儲存未投票學生名單
 
         // DOM 元素
         const classSelect = document.getElementById('classSelect');
@@ -599,6 +614,11 @@
         const applyFilterBtn = document.getElementById('applyFilterBtn');
         const resetFilterBtn = document.getElementById('resetFilterBtn');
         const deleteFilteredBtn = document.getElementById('deleteFilteredBtn');
+
+        // 未投票學生相關元素
+        const loadUnvotedStudentsBtn = document.getElementById('loadUnvotedStudentsBtn');
+        const exportUnvotedExcelBtn = document.getElementById('exportUnvotedExcelBtn');
+        const unvotedStudentsArea = document.getElementById('unvotedStudentsArea');
 
         function showModal(message, buttons = []) {
             modalMessage.innerText = message;
@@ -643,22 +663,12 @@
                 if (!res.ok) throw new Error(`HTTP ${res.status}`);
                 studentList = await res.json();
                 if (!Array.isArray(studentList)) studentList = [];
-                populateClassSelect();
-                populateFilterClassSelect();
             } catch (err) {
-                console.warn("讀取 namelist.json 失敗，使用示範數據", err);
-                studentList = [
-                    { 班別: "P1C", 學號: "103", 姓名: "李小樂" },
-                    { 班別: "P1A", 學號: "101", 姓名: "王美美" },
-                    { 班別: "P1B", 學號: "102", 姓名: "張小美" },
-                    { 班別: "P1D", 學號: "104", 姓名: "陳大文" },
-                    { 班別: "P2A", 學號: "201", 姓名: "黃子軒" },
-                    { 班別: "P2B", 學號: "202", 姓名: "林宜靜" },
-                    { 班別: "P2C", 學號: "203", 姓名: "鄭明軒" }
-                ];
+                console.warn("讀取 namelist.json 失敗", err);
+                studentList = [];
+            } finally {
                 populateClassSelect();
                 populateFilterClassSelect();
-                showModal("⚠️ 未找到 docs/namelist.json，已載入示範學生資料。", [{ label: "知道了" }]);
             }
         }
 
@@ -759,10 +769,10 @@
                 }));
             } catch (err) {
                 console.warn("讀取 teacherlist.json 失敗", err);
-                teacherList = [
-                ];
+                teacherList = [];
+            } finally {
+                renderTeacherGrid();
             }
-            renderTeacherGrid();
         }
 
         function formatTeacherName(name) {
@@ -1211,6 +1221,99 @@
         document.getElementById('refreshRecordsBtn') && (document.getElementById('refreshRecordsBtn').onclick = () => {
             loadAllVoteRecords();
         });
+
+        // ------------------- 未投票學生名單功能 -------------------
+        async function loadUnvotedStudents() {
+            if (!unvotedStudentsArea) return;
+            unvotedStudentsArea.innerHTML = '<p>載入中...</p>';
+            try {
+                // 重新獲取最新投票記錄以確保資料最新
+                const votesRef = ref(db, 'votes');
+                const snapshot = await get(votesRef);
+                const votesData = snapshot.val();
+                const votes = votesData ? Object.values(votesData) : [];
+
+                // 建立已投票學生的集合 (class_studentId)
+                const votedSet = new Set();
+                for (const vote of votes) {
+                    if (vote.class && vote.studentId) {
+                        votedSet.add(`${vote.class}_${vote.studentId}`);
+                    }
+                }
+
+                // 比對學生名單，找出未投票者
+                const unvoted = [];
+                for (const student of studentList) {
+                    const key = `${student.班別}_${student.學號}`;
+                    if (!votedSet.has(key)) {
+                        unvoted.push({
+                            班別: student.班別,
+                            學號: student.學號,
+                            姓名: student.姓名
+                        });
+                    }
+                }
+
+                // 排序：先按班級排序(使用統一的class排序規則)，再按學號
+                const classOrder = sortClasses([...new Set(studentList.map(s => s.班別))]);
+                unvoted.sort((a, b) => {
+                    const classA = classOrder.indexOf(a.班別);
+                    const classB = classOrder.indexOf(b.班別);
+                    if (classA !== classB) return classA - classB;
+                    const numA = parseInt(a.學號, 10);
+                    const numB = parseInt(b.學號, 10);
+                    if (isNaN(numA) && isNaN(numB)) return String(a.學號).localeCompare(String(b.學號));
+                    if (isNaN(numA)) return 1;
+                    if (isNaN(numB)) return -1;
+                    return numA - numB;
+                });
+
+                // 儲存至全域變數以便匯出
+                unvotedStudents = unvoted;
+
+                // 顯示結果
+                if (unvoted.length === 0) {
+                    unvotedStudentsArea.innerHTML = '<p>✅ 所有學生皆已完成投票！</p>';
+                    return;
+                }
+
+                let html = '<table class="unvoted-students-table"><thead><tr><th>班別</th><th>學號</th><th>姓名</th></tr></thead><tbody>';
+                for (const student of unvoted) {
+                    html += `<tr><td>${student.班別}</td><td>${student.學號}</td><td>${student.姓名}</td></tr>`;
+                }
+                html += '</tbody></table>';
+                html += `<div style="margin-top:8px;">未投票人數：${unvoted.length} 人</div>`;
+                unvotedStudentsArea.innerHTML = html;
+            } catch (e) {
+                unvotedStudentsArea.innerHTML = '<p>載入失敗，請檢查資料庫或學生名單。</p>';
+                console.error(e);
+            }
+        }
+
+        function exportUnvotedToExcel() {
+            if (!unvotedStudents || unvotedStudents.length === 0) {
+                showModal("沒有未投票學生資料可匯出，請先載入名單。", [{ label: "確定" }]);
+                return;
+            }
+            try {
+                const exportData = unvotedStudents.map(s => ({
+                    班別: s.班別,
+                    學號: s.學號,
+                    姓名: s.姓名
+                }));
+                const ws = XLSX.utils.json_to_sheet(exportData);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "未投票學生");
+                XLSX.writeFile(wb, `未投票學生名單_${new Date().toISOString().slice(0,19)}.xlsx`);
+                showModal("匯出成功！", [{ label: "關閉" }]);
+            } catch (e) {
+                showModal("匯出失敗，請稍後再試。", [{ label: "關閉" }]);
+            }
+        }
+
+        // 綁定按鈕事件
+        loadUnvotedStudentsBtn && (loadUnvotedStudentsBtn.onclick = loadUnvotedStudents);
+        exportUnvotedExcelBtn && (exportUnvotedExcelBtn.onclick = exportUnvotedToExcel);
 
         (async function init() {
             await loadStudentData();
