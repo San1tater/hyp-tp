@@ -25,11 +25,7 @@
         .container {
             max-width: 1400px;
             margin: 0 auto;
-            background: white;
-            border-radius: 32px;
-            box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-            padding: 24px 28px;
+            padding: 20px 28px;
         }
 
         @media (min-aspect-ratio: 1/1) {
@@ -132,7 +128,9 @@
         }
 
         select,
-        button {
+        button,
+        input[type="password"],
+        textarea {
             width: 100%;
             padding: 12px 16px;
             border-radius: 60px;
@@ -407,6 +405,56 @@
         .btn-delete:hover {
             background: #a82315;
         }
+
+        /* 管理工具内部标签样式 —— 横向紧凑排列 */
+        .tool-nav {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .tool-nav-btn {
+            padding: 6px 14px;
+            border-radius: 30px;
+            background: #eef3f7;
+            color: #2c5e4f;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            font-size: 0.85rem;
+            transition: 0.2s;
+            width: auto;
+            flex: 0 0 auto;
+            white-space: nowrap;
+        }
+
+        .tool-nav-btn.active {
+            background: #289672;
+            color: white;
+        }
+
+        .tool-pane {
+            display: none;
+        }
+
+        .tool-pane.active-pane {
+            display: block;
+            animation: fade 0.2s ease;
+        }
+
+        textarea {
+            border-radius: 20px;
+            font-family: monospace;
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .config-hint {
+            font-size: 0.8rem;
+            color: #5e7a8c;
+            margin: 10px 0;
+        }
     </style>
 </head>
 <body>
@@ -478,76 +526,135 @@
                 </div>
             </div>
             <div id="toolUnlockedArea" class="tool-unlocked" style="display: none;">
-                <!-- Excel 轉 JSON 工具 -->
-                <div class="tool-section" style="background: #f9fcfb; border-radius: 28px; padding: 20px; border: 1px solid #d9e9ef;">
-                    <div class="tool-title">📎 1. Excel 轉 JSON 工具</div>
-                    <div style="display: flex; flex-wrap: wrap; gap: 24px;">
-                        <div style="flex:1; min-width: 220px;">
-                            <h4>📄 學生名單轉換</h4>
-                            <p class="warning-text">表頭: 班別,學號,姓名</p>
-                            <input type="file" id="studentExcelInput" accept=".xlsx, .xls, .csv" />
-                            <button id="convertStudentBtn" style="margin-top: 10px;">轉換並下載 JSON</button>
-                        </div>
-                        <div style="flex:1; min-width: 220px;">
-                            <h4>👩‍🏫 教師名單轉換</h4>
-                            <p class="warning-text">表頭: 編號, 名字, 縮寫</p>
-                            <input type="file" id="teacherExcelInput" accept=".xlsx, .xls, .csv" />
-                            <button id="convertTeacherBtn" style="margin-top: 10px;">轉換並下載 JSON</button>
-                        </div>
-                    </div>
-                    <hr />
-                    <div class="tool-title">📊 2. 投票統計 (票數排序)</div>
-                    <div>
-                        <button id="refreshStatsBtn" style="width: auto; background: #3f7e6b; margin-right: 12px;">🔄 重新整理票數統計</button>
-                        <button id="exportStatsExcelBtn" style="width: auto; background: #2c6e9e;">📎 匯出 Excel 報表</button>
-                    </div>
-                    <div id="statsResultArea" style="margin-top: 20px; max-height: 300px; overflow-x: auto;">
-                        <p>點擊重新整理或等待載入...</p>
-                    </div>
-                    <hr />
-                    <div class="tool-title">🗑️ 3. 投票記錄管理 (可刪除特定學生投票)</div>
-                    <!-- 篩選列：重新整理按鈕在最左邊，班別與學號選擇框縮短 -->
-                    <div class="filter-bar">
-                        <button id="refreshRecordsBtn" class="btn-refresh" style="background: #3f7e6b;">🔄 重新整理投票記錄</button>
-                        <div class="input-group">
-                            <label>📚 篩選班別</label>
-                            <select id="filterClassSelect">
-                                <option value="">全部班別</option>
-                            </select>
-                        </div>
-                        <div class="input-group">
-                            <label>🔢 篩選學號</label>
-                            <select id="filterStudentIdSelect" disabled>
-                                <option value="">請先選擇班別</option>
-                            </select>
-                        </div>
-                        <button id="applyFilterBtn">🔍 篩選</button>
-                        <button id="resetFilterBtn" style="background: #6c8b9b;">🔄 重置</button>
-                        <button id="deleteFilteredBtn" class="btn-delete">🗑️ 刪除所選</button>
-                    </div>
-                    <div id="recordsResultArea" style="margin-top: 20px;" class="scrollable-table">
-                        <p>請點擊「重新整理投票記錄」以載入資料</p>
-                    </div>
+                <!-- 管理工具导航栏 -->
+                <div class="tool-nav">
+                    <button class="tool-nav-btn active" data-tooltab="dataTab">📁 數據轉換</button>
+                    <button class="tool-nav-btn" data-tooltab="statsTab">📊 投票統計</button>
+                    <button class="tool-nav-btn" data-tooltab="recordsTab">📝 投票記錄</button>
+                    <button class="tool-nav-btn" data-tooltab="unvotedTab">📋 未投票名單</button>
+                    <button class="tool-nav-btn" data-tooltab="securityTab">🔒 安全性</button>
+                </div>
 
-                    <!-- 新增：未投票學生名單 -->
-                    <hr />
-                    <div class="tool-title">📋 4. 未投票學生名單</div>
-                    <div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 12px;">
-                        <button id="loadUnvotedStudentsBtn" style="width: auto; background: #3f7e6b;">🔄 載入未投票學生</button>
-                        <button id="exportUnvotedExcelBtn" style="width: auto; background: #2c6e9e;">📎 匯出 Excel</button>
-                    </div>
-                    <div id="unvotedStudentsArea" style="margin-top: 12px; max-height: 300px; overflow-x: auto;" class="scrollable-table">
-                        <p>點擊「載入未投票學生」以顯示名單</p>
+                <!-- 数据转换面板 -->
+                <div id="dataTab" class="tool-pane active-pane">
+                    <div style="background: #f9fcfb; border-radius: 28px; padding: 20px; border: 1px solid #d9e9ef;">
+                        <div class="tool-title">📎 Excel 轉 JSON 工具</div>
+                        <div style="display: flex; flex-wrap: wrap; gap: 24px;">
+                            <div style="flex:1; min-width: 220px;">
+                                <h4>📄 學生名單轉換</h4>
+                                <p class="warning-text">表頭: 班別,學號,姓名</p>
+                                <input type="file" id="studentExcelInput" accept=".xlsx, .xls, .csv" />
+                                <button id="convertStudentBtn" style="margin-top: 10px;">轉換並下載 JSON</button>
+                            </div>
+                            <div style="flex:1; min-width: 220px;">
+                                <h4>👩‍🏫 教師名單轉換</h4>
+                                <p class="warning-text">表頭: 編號, 名字, 縮寫</p>
+                                <input type="file" id="teacherExcelInput" accept=".xlsx, .xls, .csv" />
+                                <button id="convertTeacherBtn" style="margin-top: 10px;">轉換並下載 JSON</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div style="margin-top: 24px; background:#eef2f5; border-radius: 20px; padding: 16px;">
-                    <div class="tool-title" style="margin:0 0 8px 0;">🔥 Firebase Realtime Database 配置</div>
-                    <p>目前使用您提供的 Firebase 專案，資料庫連線正常。</p>
-                    <div class="firebase-config-code">
-                        databaseURL: https://hyp-tp-default-rtdb.firebaseio.com<br>
-                        專案ID: hyp-tp
+
+                <!-- 投票统计面板 -->
+                <div id="statsTab" class="tool-pane">
+                    <div style="background: #f9fcfb; border-radius: 28px; padding: 20px; border: 1px solid #d9e9ef;">
+                        <div class="tool-title">📊 投票統計 (票數排序)</div>
+                        <div>
+                            <button id="refreshStatsBtn" style="width: auto; background: #3f7e6b; margin-right: 12px;">🔄 重新整理票數統計</button>
+                            <button id="exportStatsExcelBtn" style="width: auto; background: #2c6e9e;">📎 匯出 Excel 報表</button>
+                        </div>
+                        <div id="statsResultArea" style="margin-top: 20px; max-height: 300px; overflow-x: auto;">
+                            <p>點擊重新整理或等待載入...</p>
+                        </div>
                     </div>
                 </div>
+
+                <!-- 投票记录管理面板 -->
+                <div id="recordsTab" class="tool-pane">
+                    <div style="background: #f9fcfb; border-radius: 28px; padding: 20px; border: 1px solid #d9e9ef;">
+                        <div class="tool-title">🗑️ 投票記錄管理 (可刪除特定學生投票)</div>
+                        <div class="filter-bar">
+                            <button id="refreshRecordsBtn" class="btn-refresh" style="background: #3f7e6b;">🔄 重新整理投票記錄</button>
+                            <div class="input-group">
+                                <label>📚 篩選班別</label>
+                                <select id="filterClassSelect">
+                                    <option value="">全部班別</option>
+                                </select>
+                            </div>
+                            <div class="input-group">
+                                <label>🔢 篩選學號</label>
+                                <select id="filterStudentIdSelect" disabled>
+                                    <option value="">請先選擇班別</option>
+                                </select>
+                            </div>
+                            <button id="applyFilterBtn">🔍 篩選</button>
+                            <button id="resetFilterBtn" style="background: #6c8b9b;">🔄 重置</button>
+                            <button id="deleteFilteredBtn" class="btn-delete">🗑️ 刪除所選</button>
+                        </div>
+                        <div id="recordsResultArea" style="margin-top: 20px;" class="scrollable-table">
+                            <p>請點擊「重新整理投票記錄」以載入資料</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 未投票学生名单面板 -->
+                <div id="unvotedTab" class="tool-pane">
+                    <div style="background: #f9fcfb; border-radius: 28px; padding: 20px; border: 1px solid #d9e9ef;">
+                        <div class="tool-title">📋 未投票學生名單</div>
+                        <div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 12px;">
+                            <button id="loadUnvotedStudentsBtn" style="width: auto; background: #3f7e6b;">🔄 載入未投票學生</button>
+                            <button id="exportUnvotedExcelBtn" style="width: auto; background: #2c6e9e;">📎 匯出 Excel</button>
+                        </div>
+                        <div id="unvotedStudentsArea" style="margin-top: 12px; max-height: 300px; overflow-x: auto;" class="scrollable-table">
+                            <p>點擊「載入未投票學生」以顯示名單</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 安全性面板 -->
+                <div id="securityTab" class="tool-pane">
+                    <div style="background: #f9fcfb; border-radius: 28px; padding: 20px; border: 1px solid #d9e9ef;">
+                        <div class="tool-title">🔒 安全性設定</div>
+                        <div style="display: flex; flex-wrap: wrap; gap: 30px;">
+                            <div style="flex: 1; min-width: 250px;">
+                                <h4>🔑 修改管理員密碼</h4>
+                                <div class="input-group" style="margin-bottom: 12px;">
+                                    <label>目前密碼</label>
+                                    <input type="password" id="currentPasswordInput" placeholder="輸入目前密碼">
+                                </div>
+                                <div class="input-group" style="margin-bottom: 12px;">
+                                    <label>新密碼</label>
+                                    <input type="password" id="newPasswordInput" placeholder="輸入新密碼">
+                                </div>
+                                <div class="input-group" style="margin-bottom: 12px;">
+                                    <label>確認新密碼</label>
+                                    <input type="password" id="confirmNewPasswordInput" placeholder="再次輸入新密碼">
+                                </div>
+                                <button id="changePasswordBtn" style="width: auto;">✅ 更新密碼</button>
+                            </div>
+                            <div style="flex: 1; min-width: 300px;">
+                                <h4>⚙️ Firebase 資料庫設定</h4>
+                                <p class="config-hint">貼上完整的 Firebase 設定物件 (JSON 格式)，然後點擊「套用設定」。</p>
+                                <textarea id="firebaseConfigTextarea" placeholder='{"apiKey":"...","authDomain":"...","databaseURL":"...","projectId":"...","storageBucket":"...","messagingSenderId":"...","appId":"...","measurementId":"..."}'></textarea>
+                                <div style="margin-top: 12px;">
+                                    <button id="applyFirebaseConfigBtn" style="width: auto;">💾 套用設定</button>
+                                    <button id="resetFirebaseConfigBtn" style="width: auto; background: #6c8b9b; margin-left: 8px;">🔄 恢復預設</button>
+                                </div>
+                                <p class="warning-text" style="margin-top: 8px;">修改後需要重新整理頁面才會生效。</p>
+                            </div>
+                        </div>
+                        <!-- Firebase 配置信息显示区（移至此处） -->
+                        <div style="margin-top: 24px; background:#eef2f5; border-radius: 20px; padding: 16px;">
+                            <div class="tool-title" style="margin:0 0 8px 0;">🔥 Firebase Realtime Database 配置</div>
+                            <p>目前連線至：<span id="currentDbUrl">載入中...</span></p>
+                            <div class="firebase-config-code" id="currentConfigDisplay">
+                                載入中...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
     </div>
@@ -563,7 +670,8 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
         import { getDatabase, ref, set, get, remove, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-database.js";
 
-        const firebaseConfig = {
+        // 默认配置
+        const defaultFirebaseConfig = {
             apiKey: "AIzaSyDCvkvGdcM6mgtCFUhdhystavYIABq3dqE",
             authDomain: "hyp-tp.firebaseapp.com",
             databaseURL: "https://hyp-tp-default-rtdb.firebaseio.com",
@@ -574,9 +682,36 @@
             measurementId: "G-M43LXWJN8T"
         };
 
+        // 从localStorage加载自定义配置，如果没有则使用默认
+        function getFirebaseConfig() {
+            const saved = localStorage.getItem('firebaseCustomConfig');
+            if (saved) {
+                try {
+                    const custom = JSON.parse(saved);
+                    // 合并确保所有字段都有值
+                    return { ...defaultFirebaseConfig, ...custom };
+                } catch (e) {
+                    console.warn("自定義Firebase配置無效，使用預設");
+                }
+            }
+            return { ...defaultFirebaseConfig };
+        }
+
+        const firebaseConfig = getFirebaseConfig();
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
         console.log("Firebase Realtime Database 已連線");
+
+        // 更新显示当前数据库URL
+        function updateCurrentConfigDisplay() {
+            const urlSpan = document.getElementById('currentDbUrl');
+            const configDisplay = document.getElementById('currentConfigDisplay');
+            if (urlSpan) urlSpan.innerText = firebaseConfig.databaseURL || '未設定';
+            if (configDisplay) {
+                configDisplay.innerText = JSON.stringify(firebaseConfig, null, 2);
+            }
+        }
+        updateCurrentConfigDisplay();
 
         // 全域資料
         let studentList = [];
@@ -586,7 +721,7 @@
         let allVoteRecords = [];
         let currentFilterClass = "";
         let currentFilterStudentId = "";
-        let unvotedStudents = []; // 儲存未投票學生名單
+        let unvotedStudents = [];
 
         // DOM 元素
         const classSelect = document.getElementById('classSelect');
@@ -615,10 +750,18 @@
         const resetFilterBtn = document.getElementById('resetFilterBtn');
         const deleteFilteredBtn = document.getElementById('deleteFilteredBtn');
 
-        // 未投票學生相關元素
         const loadUnvotedStudentsBtn = document.getElementById('loadUnvotedStudentsBtn');
         const exportUnvotedExcelBtn = document.getElementById('exportUnvotedExcelBtn');
         const unvotedStudentsArea = document.getElementById('unvotedStudentsArea');
+
+        // 安全性相关元素
+        const currentPasswordInput = document.getElementById('currentPasswordInput');
+        const newPasswordInput = document.getElementById('newPasswordInput');
+        const confirmNewPasswordInput = document.getElementById('confirmNewPasswordInput');
+        const changePasswordBtn = document.getElementById('changePasswordBtn');
+        const firebaseConfigTextarea = document.getElementById('firebaseConfigTextarea');
+        const applyFirebaseConfigBtn = document.getElementById('applyFirebaseConfigBtn');
+        const resetFirebaseConfigBtn = document.getElementById('resetFirebaseConfigBtn');
 
         function showModal(message, buttons = []) {
             modalMessage.innerText = message;
@@ -655,6 +798,14 @@
                 }
                 return a.localeCompare(b, 'zh-Hant');
             });
+        }
+
+        // 管理员密码存储键
+        const ADMIN_PASSWORD_KEY = 'adminPassword';
+        const DEFAULT_PASSWORD = "Hyp26dhl!";
+
+        function getAdminPassword() {
+            return localStorage.getItem(ADMIN_PASSWORD_KEY) || DEFAULT_PASSWORD;
         }
 
         async function loadStudentData() {
@@ -911,12 +1062,22 @@
         }
 
         function unlockTools(password) {
-            if (password === "Hyp26dhl!") {
+            const currentPwd = getAdminPassword();
+            if (password === currentPwd) {
                 isToolsUnlocked = true;
                 toolLockedArea.style.display = "none";
                 toolUnlockedArea.style.display = "block";
+                // 初始化管理工具标签页（默认显示数据转换）
+                document.querySelectorAll('.tool-nav-btn').forEach(b => b.classList.remove('active'));
+                document.querySelector('.tool-nav-btn[data-tooltab="dataTab"]').classList.add('active');
+                document.querySelectorAll('.tool-pane').forEach(p => p.classList.remove('active-pane'));
+                document.getElementById('dataTab').classList.add('active-pane');
                 loadVoteStatistics();
                 loadAllVoteRecords();
+                // 预填Firebase配置
+                if (firebaseConfigTextarea) {
+                    firebaseConfigTextarea.value = JSON.stringify(getFirebaseConfig(), null, 2);
+                }
                 return true;
             } else {
                 showModal("密碼錯誤，無法進入管理工具。", [{ label: "確定", onClick: () => { adminPasswordInput.value =
@@ -940,6 +1101,7 @@
                 loadAllVoteRecords();
             }
         }
+        // 主标签切换
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -950,6 +1112,17 @@
                 if (targetId === 'toolsTab') {
                     syncToolsTabUI();
                 }
+            });
+        });
+
+        // 管理工具内部标签切换
+        document.querySelectorAll('.tool-nav-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tooltabId = btn.dataset.tooltab;
+                document.querySelectorAll('.tool-nav-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                document.querySelectorAll('.tool-pane').forEach(p => p.classList.remove('active-pane'));
+                document.getElementById(tooltabId).classList.add('active-pane');
             });
         });
 
@@ -1150,7 +1323,6 @@
             recordsDiv.innerHTML = html;
         }
 
-        // 刪除功能：根據篩選條件刪除記錄
         async function deleteRecordsByFilter() {
             const selectedClass = filterClassSelect.value;
             const selectedStudentId = filterStudentIdSelect.value;
@@ -1161,7 +1333,6 @@
             let confirmMsg = "";
             let recordsToDelete = [];
             if (selectedStudentId && selectedStudentId !== "") {
-                // 刪除特定學生
                 recordsToDelete = allVoteRecords.filter(rec => rec.class === selectedClass && rec.studentId ===
                     selectedStudentId);
                 if (recordsToDelete.length === 0) {
@@ -1170,7 +1341,6 @@
                 }
                 confirmMsg = `確定要刪除 ${selectedClass} ${selectedStudentId} 的投票記錄嗎？此操作無法復原。`;
             } else {
-                // 刪除整個班級
                 recordsToDelete = allVoteRecords.filter(rec => rec.class === selectedClass);
                 if (recordsToDelete.length === 0) {
                     showModal(`沒有找到 ${selectedClass} 的任何投票記錄。`, [{ label: "確定" }]);
@@ -1222,26 +1392,21 @@
             loadAllVoteRecords();
         });
 
-        // ------------------- 未投票學生名單功能 -------------------
+        // 未投票学生名单功能
         async function loadUnvotedStudents() {
             if (!unvotedStudentsArea) return;
             unvotedStudentsArea.innerHTML = '<p>載入中...</p>';
             try {
-                // 重新獲取最新投票記錄以確保資料最新
                 const votesRef = ref(db, 'votes');
                 const snapshot = await get(votesRef);
                 const votesData = snapshot.val();
                 const votes = votesData ? Object.values(votesData) : [];
-
-                // 建立已投票學生的集合 (class_studentId)
                 const votedSet = new Set();
                 for (const vote of votes) {
                     if (vote.class && vote.studentId) {
                         votedSet.add(`${vote.class}_${vote.studentId}`);
                     }
                 }
-
-                // 比對學生名單，找出未投票者
                 const unvoted = [];
                 for (const student of studentList) {
                     const key = `${student.班別}_${student.學號}`;
@@ -1253,8 +1418,6 @@
                         });
                     }
                 }
-
-                // 排序：先按班級排序(使用統一的class排序規則)，再按學號
                 const classOrder = sortClasses([...new Set(studentList.map(s => s.班別))]);
                 unvoted.sort((a, b) => {
                     const classA = classOrder.indexOf(a.班別);
@@ -1267,16 +1430,11 @@
                     if (isNaN(numB)) return -1;
                     return numA - numB;
                 });
-
-                // 儲存至全域變數以便匯出
                 unvotedStudents = unvoted;
-
-                // 顯示結果
                 if (unvoted.length === 0) {
                     unvotedStudentsArea.innerHTML = '<p>✅ 所有學生皆已完成投票！</p>';
                     return;
                 }
-
                 let html = '<table class="unvoted-students-table"><thead><tr><th>班別</th><th>學號</th><th>姓名</th></tr></thead><tbody>';
                 for (const student of unvoted) {
                     html += `<tr><td>${student.班別}</td><td>${student.學號}</td><td>${student.姓名}</td></tr>`;
@@ -1311,9 +1469,71 @@
             }
         }
 
-        // 綁定按鈕事件
         loadUnvotedStudentsBtn && (loadUnvotedStudentsBtn.onclick = loadUnvotedStudents);
         exportUnvotedExcelBtn && (exportUnvotedExcelBtn.onclick = exportUnvotedToExcel);
+
+        // 安全性功能实现
+        // 修改密码
+        changePasswordBtn.addEventListener('click', () => {
+            const currentPwd = currentPasswordInput.value;
+            const newPwd = newPasswordInput.value;
+            const confirmPwd = confirmNewPasswordInput.value;
+            if (!currentPwd) {
+                showModal("請輸入目前密碼", [{ label: "確定" }]);
+                return;
+            }
+            if (currentPwd !== getAdminPassword()) {
+                showModal("目前密碼錯誤", [{ label: "確定" }]);
+                return;
+            }
+            if (!newPwd || newPwd.length < 6) {
+                showModal("新密碼長度至少6位", [{ label: "確定" }]);
+                return;
+            }
+            if (newPwd !== confirmPwd) {
+                showModal("兩次輸入的新密碼不一致", [{ label: "確定" }]);
+                return;
+            }
+            localStorage.setItem(ADMIN_PASSWORD_KEY, newPwd);
+            showModal("密碼更新成功！", [{ label: "確定", onClick: () => {
+                currentPasswordInput.value = '';
+                newPasswordInput.value = '';
+                confirmNewPasswordInput.value = '';
+            }}]);
+        });
+
+        // Firebase配置管理
+        applyFirebaseConfigBtn.addEventListener('click', () => {
+            const configStr = firebaseConfigTextarea.value.trim();
+            if (!configStr) {
+                showModal("請貼上Firebase配置JSON", [{ label: "確定" }]);
+                return;
+            }
+            try {
+                const newConfig = JSON.parse(configStr);
+                if (!newConfig.apiKey || !newConfig.databaseURL || !newConfig.projectId) {
+                    showModal("配置必須包含apiKey, databaseURL, projectId", [{ label: "確定" }]);
+                    return;
+                }
+                localStorage.setItem('firebaseCustomConfig', configStr);
+                showModal("Firebase配置已儲存，請重新整理頁面以套用新設定。", [{ label: "確定" }]);
+                updateCurrentConfigDisplay();
+            } catch (e) {
+                showModal("JSON格式無效，請檢查", [{ label: "確定" }]);
+            }
+        });
+
+        resetFirebaseConfigBtn.addEventListener('click', () => {
+            localStorage.removeItem('firebaseCustomConfig');
+            firebaseConfigTextarea.value = JSON.stringify(defaultFirebaseConfig, null, 2);
+            showModal("已恢復為預設Firebase配置，請重新整理頁面。", [{ label: "確定" }]);
+            updateCurrentConfigDisplay();
+        });
+
+        // 初始化时在安全性面板显示当前配置
+        if (firebaseConfigTextarea) {
+            firebaseConfigTextarea.value = JSON.stringify(getFirebaseConfig(), null, 2);
+        }
 
         (async function init() {
             await loadStudentData();
